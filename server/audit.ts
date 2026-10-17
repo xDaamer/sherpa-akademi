@@ -63,6 +63,11 @@ export type AuditAction =
   | "ADMIN_ACCOUNT_CREATED"
   | "ADMIN_ACCOUNT_UPDATED"
   | "ADMIN_PASSWORD_RESET"
+  /* Hesap silme (30 gün geri getirilebilir), geri getirme ve 30 gün sonraki
+     kalıcı silme. Detayda hesap kimliği ve rol var; telefon YOK. */
+  | "ADMIN_ACCOUNT_DELETED"
+  | "ADMIN_ACCOUNT_RESTORED"
+  | "ADMIN_ACCOUNT_PURGED"
   | "ADMIN_LESSON_WRITE"
   | "ADMIN_LESSON_DELETED"
   /* Öğretmenin müsait saatlerini değiştirmek. Detaya yalnızca aralık SAYISI

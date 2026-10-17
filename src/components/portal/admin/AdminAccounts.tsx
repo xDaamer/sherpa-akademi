@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { UserPlus, KeyRound, Users, CalendarClock, FileText } from 'lucide-react';
+import { UserPlus, KeyRound, Users, CalendarClock, FileText, Trash2, ArchiveRestore } from 'lucide-react';
 import { Button } from '../../ui/Button';
 import { apiFetch, ApiRequestError } from '../../../lib/api';
 import { useAuth } from '../../../context/AuthContext';
@@ -17,6 +17,7 @@ import {
   type Hesap,
 } from './AdminUI';
 import { MusaitlikDuzenleyici } from './AdminAvailability';
+import { AdminDeletedAccounts } from './AdminDeletedAccounts';
 import type { Aralik } from '../../../lib/dersSaati';
 
 /*
@@ -45,13 +46,20 @@ import type { Aralik } from '../../../lib/dersSaati';
  * hiçbir öğretmen "onaylı" sayılmıyor — bilinmeyeni onaylı göstermek yanlış
  * olurdu.
  *
- * HESAP SİLME YOK ve bu bilinçli: bir auth kullanıcısını silmek ders
- * geçmişini de etkileyen, geri dönüşü olmayan bir iş. Yanlış satıra basmanın
- * bedeli, panelde kazanılan rahatlıktan büyük. Erişimi kesmek gerekirse
- * Supabase Dashboard'dan yapılır.
+ * HESAP SİLME (2026-10-18) GERİ ALINABİLİR: hesap girişe kapanıyor, profili
+ * 30 gün "Silinen profiller"de bekliyor, sonra sunucu kalıcı siliyor. Dersler
+ * ve ödemeler bu sürede yerinde kalıyor. Silmek için yönetici hesabın telefon
+ * numarasını yazmak zorunda — yanlış satıra basmanın bedeli yüksek. Asıl
+ * karşılaştırma sunucuda; buradaki yalnızca düğmeyi açıyor. Kendi hesabında
+ * "Sil" düğmesi yok (sunucu da reddediyor).
  */
 
 const ROLLER: Hesap['userType'][] = ['student', 'teacher', 'admin'];
+
+/** Sunucudaki telefonNormalize'ın aynısı: "0532 123 45 67" -> "05321234567". */
+function telefonNormalize(deger: string): string {
+  return `0${deger.replace(/\D/g, '').replace(/^0+/, '')}`;
+}
 
 const BOS_FORM = {
   fullName: '',
@@ -86,6 +94,13 @@ export const AdminAccounts: React.FC<{
   /* Açıklaması düzenlenen öğretmen. Metin listeden geliyor, ayrı okuma yok. */
   const [aciklamaAcik, setAciklamaAcik] = useState<string | null>(null);
   const [aciklamaTaslak, setAciklamaTaslak] = useState('');
+  /* Silme onayı açık olan satır ve yazılan telefon. */
+  const [silAcik, setSilAcik] = useState<string | null>(null);
+  const [silTelefon, setSilTelefon] = useState('');
+  /* Silinen profiller listesi; surum bir hesap silindiğinde artıyor ki liste
+     açıksa yeniden okunsun. */
+  const [silinenlerAcik, setSilinenlerAcik] = useState(false);
+  const [silinenSurum, setSilinenSurum] = useState(0);
 
   /* Liste filtresi. Başlangıçta her rol seçili: sekme açıldığında hiçbir
      hesap gizli olmamalı. */
@@ -164,6 +179,7 @@ export const AdminAccounts: React.FC<{
     setDuzenlenen(null);
     setSifreAcik(null);
     setMusaitlikAcik(null);
+    setSilAcik(null);
     setAciklamaAcik(aciklamaAcik === h.id ? null : h.id);
     setAciklamaTaslak(h.description ?? '');
   }
@@ -192,6 +208,7 @@ export const AdminAccounts: React.FC<{
     setDuzenlenen(null);
     setSifreAcik(null);
     setAciklamaAcik(null);
+    setSilAcik(null);
     if (musaitlikAcik === id) {
       setMusaitlikAcik(null);
       return;
@@ -222,6 +239,27 @@ export const AdminAccounts: React.FC<{
       setMusaitlikAcik(null);
     } catch (err) {
       setHata(err instanceof ApiRequestError ? err.message : 'Müsait saatler kaydedilemedi.');
+    } finally {
+      setMesgul(false);
+    }
+  }
+
+  async function hesapSil(h: Hesap) {
+    setMesgul(true);
+    setHata(null);
+    setBasari(null);
+    try {
+      await apiFetch(`/api/admin/hesaplar/${h.id}/sil`, {
+        method: 'POST',
+        body: { phone: silTelefon },
+      });
+      setBasari(`${h.fullName} silindi. 30 gün içinde "Silinen profiller"den geri getirebilirsiniz.`);
+      setSilAcik(null);
+      setSilTelefon('');
+      setSilinenSurum((n) => n + 1);
+      onDegisti();
+    } catch (err) {
+      setHata(err instanceof ApiRequestError ? err.message : 'Hesap silinemedi.');
     } finally {
       setMesgul(false);
     }
@@ -472,6 +510,7 @@ export const AdminAccounts: React.FC<{
                         setSifreAcik(null);
                         setMusaitlikAcik(null);
                         setAciklamaAcik(null);
+                        setSilAcik(null);
                         setDuzenlenen(duzenlenen === h.id ? null : h.id);
                         setDuzenForm({
                           fullName: h.fullName,
@@ -490,6 +529,7 @@ export const AdminAccounts: React.FC<{
                         setDuzenlenen(null);
                         setMusaitlikAcik(null);
                         setAciklamaAcik(null);
+                        setSilAcik(null);
                         setSifreAcik(sifreAcik === h.id ? null : h.id);
                         setYeniSifre('');
                       }}
@@ -497,6 +537,23 @@ export const AdminAccounts: React.FC<{
                       <KeyRound className="h-4 w-4" />
                       <span className="hidden sm:inline">Şifre</span>
                     </Button>
+                    {h.id !== user?.id && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => {
+                          setDuzenlenen(null);
+                          setSifreAcik(null);
+                          setMusaitlikAcik(null);
+                          setAciklamaAcik(null);
+                          setSilAcik(silAcik === h.id ? null : h.id);
+                          setSilTelefon('');
+                        }}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                        <span className="hidden sm:inline">Sil</span>
+                      </Button>
+                    )}
                   </div>
                 </div>
 
@@ -615,6 +672,42 @@ export const AdminAccounts: React.FC<{
                   </div>
                 )}
 
+                {silAcik === h.id && (
+                  <div className="mt-3 border-t border-slate-200 pt-3">
+                    <div className="mb-3 rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-800">
+                      <strong>{h.fullName}</strong> silinecek: girişi hemen kapanır ve listeden kalkar.
+                      30 gün boyunca "Silinen profiller"den geri getirilebilir; sonra kalıcı olarak
+                      silinir.
+                    </div>
+                    <div className="flex flex-wrap items-end gap-3">
+                      <div className="min-w-[220px] flex-1">
+                        <Alan etiket="Onay için bu hesabın telefon numarasını yazın">
+                          <Girdi
+                            value={silTelefon}
+                            onChange={(e) => setSilTelefon(e.target.value)}
+                            placeholder="05xxxxxxxxx"
+                            inputMode="numeric"
+                            autoComplete="off"
+                            autoFocus
+                          />
+                        </Alan>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => void hesapSil(h)}
+                        disabled={mesgul || telefonNormalize(silTelefon) !== h.phone}
+                        className="inline-flex items-center gap-2 rounded-xl bg-red-600 px-4 py-2 text-xs font-bold text-white hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-40"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                        {mesgul ? 'Siliniyor...' : 'Hesabı sil'}
+                      </button>
+                      <Button variant="ghost" size="sm" onClick={() => setSilAcik(null)}>
+                        Vazgeç
+                      </Button>
+                    </div>
+                  </div>
+                )}
+
                 {sifreAcik === h.id && (
                   <div className="mt-3 flex flex-wrap items-end gap-3 border-t border-slate-200 pt-3">
                     <div className="min-w-[220px] flex-1">
@@ -644,6 +737,15 @@ export const AdminAccounts: React.FC<{
           </ul>
         )}
       </Kutu>
+
+      <div className="flex justify-end">
+        <Button variant="soft" size="sm" onClick={() => setSilinenlerAcik((a) => !a)}>
+          <ArchiveRestore className="h-4 w-4" />
+          {silinenlerAcik ? 'Silinen profilleri gizle' : 'Silinen profilleri getir'}
+        </Button>
+      </div>
+
+      {silinenlerAcik && <AdminDeletedAccounts surum={silinenSurum} onGeriGeldi={onDegisti} />}
     </div>
   );
 };

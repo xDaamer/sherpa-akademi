@@ -193,9 +193,15 @@ function aciklamaNormalize(value: unknown): { hata: string } | { aciklama: strin
  *   - Sözleşme ya da onay tablosu okunamazsa (migration henüz uygulanmamış
  *     olabilir). "Onaylamadı" demek yanlış olurdu, çünkü bilinmiyor.
  */
-router.get("/ozet", async (_req, res) => {
+router.get("/ozet", async (req, res) => {
+  const { userId: yapanId } = res.locals as unknown as SessionLocals;
   const admin = serviceClient();
   if (!admin) return res.status(503).json({ success: false, error: NOT_CONFIGURED });
+
+  /* 30 günü dolmuş silinen hesapların temizliği (bkz. kaliciSilmeTuru). Liste
+     okumasıyla aynı anda çalışıyor; yanıt beklenmeden dönmüyor çünkü Vercel
+     yanıttan sonra kalan işi dondurabilir. Hiçbir zaman istek düşürmüyor. */
+  const temizlik = kaliciSilmeTuru(admin, req, yapanId);
 
   try {
     const [{ data: profiller, error }, aciklamalar, onaylar, sozlesmeVarMi] = await Promise.all([
@@ -215,6 +221,8 @@ router.get("/ozet", async (_req, res) => {
       /* Yayınlanmış bir sözleşme var mı: tek satırlık kimlik okuması, metin yok. */
       admin.from("teacher_legal_documents").select("id").eq("kind", "ogretmen_sozlesmesi").limit(1),
     ]);
+
+    await temizlik;
 
     if (error) {
       console.error("[Admin] profiller okunamadı:", error.message);
@@ -612,6 +620,297 @@ router.post("/hesaplar/:id/sifre", async (req, res) => {
     return res.json({ success: true });
   } catch (err: any) {
     console.error("[Admin] şifre sıfırlama istisnası:", err?.message || err);
+    return res.status(500).json({ success: false, error: GENERIC_ERROR });
+  }
+});
+
+/* ========================================================= HESAP SİLME */
+
+/*
+ * SİLME GERİ ALINABİLİR, 30 GÜN (2026-10-18) — şema supabase-deleted-accounts.sql
+ * ---------------------------------------------------------------------------
+ * "Sil" hesabı hemen yok etmiyor: auth kullanıcısı yasaklanıyor ve profil
+ * deleted_accounts'a taşınıyor. auth.users'a bağlı her şey (dersler,
+ * ödemeler, müsaitlik, sözleşme onayı) yerinde kalıyor; geri getirmek profili
+ * geri koyup yasağı kaldırmak. 30 gün dolunca kaliciSilmeTuru auth
+ * kullanıcısını gerçekten siliyor.
+ *
+ * GÜVENLİK:
+ *   - Yönetici silinecek hesabın TELEFONUNU yazmak zorunda ve karşılaştırma
+ *     SUNUCUDA (ve RPC içinde, satır kilitliyken bir kez daha) yapılıyor.
+ *     İstemcideki kontrol yalnızca düğmeyi açıyor; sınır değil.
+ *   - Kendi hesabını silemez. Bu, "son yöneticiyi silme"yi de kapatıyor:
+ *     silen her zaman bir yönetici ve kendisi listede kalıyor.
+ *   - SIRA ÖNEMLİ. Silmede önce yasak, sonra profil: yasak tutmazsa hiçbir şey
+ *     değişmemiş oluyor. Geri getirmede önce yasağı kaldır, sonra profil:
+ *     arada profili olmayan kullanıcı zaten giriş yapamaz. Her iki yönde de
+ *     ikinci adım düşerse birinci geri alınıyor.
+ *   - Elinde hâlâ geçerli bir erişim jetonu olan silinmiş kullanıcı bir sonraki
+ *     istekte requireSession'da düşüyor (profil yok -> 403); yenileme jetonu
+ *     yasak yüzünden çalışmıyor.
+ *   - Denetim kaydına telefon YAZILMIYOR, yalnızca hesap kimliği ve rol.
+ */
+
+const SILME_BEKLEME_GUN = 30;
+const GUN_MS = 24 * 60 * 60 * 1000;
+/* Supabase'te "kalıcı yasak" diye bir değer yok; 100 yıl pratikte o. */
+const KALICI_YASAK = "876000h";
+
+/**
+ * 30 günü dolmuş hesapları kalıcı siliyor. pg_cron yok; yönetim paneli her
+ * açıldığında ve silinenler listesi her istendiğinde çağrılıyor. Hiçbir zaman
+ * istek düşürmüyor — temizlik gecikirse en kötü sonuç bir hesabın birkaç gün
+ * daha geri getirilebilir kalması.
+ *
+ * Sözleşme onaylamış öğretmen kalıcı SİLİNEMEZ (teacher_contract_acceptances
+ * ON DELETE RESTRICT, TBK md. 146): denenmiyor bile, satır 'sozlesme' notuyla
+ * listede kalıyor ve hesap girişe kapalı kalıyor. Başka bir sebeple
+ * silinemeyen hesap günde bir yeniden deneniyor.
+ */
+async function kaliciSilmeTuru(
+  admin: NonNullable<ReturnType<typeof serviceClient>>,
+  req: express.Request,
+  yapanId: string,
+): Promise<void> {
+  try {
+    const sinir = new Date(Date.now() - SILME_BEKLEME_GUN * GUN_MS).toISOString();
+    const { data, error } = await admin
+      .from("deleted_accounts")
+      .select("id, user_type, purge_attempted_at")
+      .lt("deleted_at", sinir)
+      .limit(25);
+    if (error) {
+      if (!eksikSemaMi(error)) console.error("[Admin] kalıcı silme listesi okunamadı:", error.message);
+      return;
+    }
+
+    const denemeSiniri = Date.now() - GUN_MS;
+    for (const satir of data ?? []) {
+      if (satir.purge_attempted_at && new Date(satir.purge_attempted_at).getTime() > denemeSiniri) continue;
+
+      let sebep: string | null = null;
+      if (satir.user_type === "teacher") {
+        const { data: onay, error: onayHatasi } = await admin
+          .from("teacher_contract_acceptances")
+          .select("id")
+          .eq("teacher_id", satir.id)
+          .limit(1);
+        if (!onayHatasi && (onay ?? []).length > 0) sebep = "sozlesme";
+      }
+
+      if (!sebep) {
+        const { error: silmeHatasi } = await admin.auth.admin.deleteUser(satir.id);
+        if (!silmeHatasi) {
+          /* deleted_accounts satırı CASCADE ile gitti. */
+          auditLog(req, "ADMIN_ACCOUNT_PURGED", {
+            userId: yapanId,
+            detay: { hesapId: satir.id, rol: satir.user_type },
+          });
+          continue;
+        }
+        console.error("[Admin] hesap kalıcı silinemedi:", satir.id, silmeHatasi.message);
+        sebep = "silinemedi";
+      }
+
+      await admin
+        .from("deleted_accounts")
+        .update({ purge_attempted_at: new Date().toISOString(), purge_error: sebep })
+        .eq("id", satir.id);
+    }
+  } catch (err: any) {
+    console.error("[Admin] kalıcı silme istisnası:", err?.message || err);
+  }
+}
+
+/** HESAP SİL — POST /api/admin/hesaplar/:id/sil  { phone } */
+router.post("/hesaplar/:id/sil", async (req, res) => {
+  const { userId: yapanId } = res.locals as unknown as SessionLocals;
+  const { id } = req.params;
+  const admin = serviceClient();
+  if (!admin) return res.status(503).json({ success: false, error: NOT_CONFIGURED });
+  if (!UUID_BICIMI.test(id)) {
+    return res.status(400).json({ success: false, error: "Hesap bulunamadı." });
+  }
+  if (id === yapanId) {
+    return res.status(400).json({ success: false, error: "Kendi hesabınızı silemezsiniz." });
+  }
+
+  const tel = telefonNormalize(req.body?.phone);
+  if (!tel) {
+    return res.status(400).json({ success: false, error: "Onay için hesabın telefon numarasını yazın." });
+  }
+
+  try {
+    const { data: profil, error: profilHatasi } = await admin
+      .from("profiles")
+      .select("id, phone, user_type")
+      .eq("id", id)
+      .maybeSingle();
+    if (profilHatasi) {
+      console.error("[Admin] silinecek profil okunamadı:", profilHatasi.message);
+      return res.status(502).json({ success: false, error: GENERIC_ERROR });
+    }
+    if (!profil) return res.status(404).json({ success: false, error: "Hesap bulunamadı." });
+    if (profil.phone !== tel) {
+      return res.status(400).json({ success: false, error: "Telefon numarası bu hesabınkiyle eşleşmiyor." });
+    }
+
+    const { error: yasakHatasi } = await admin.auth.admin.updateUserById(id, { ban_duration: KALICI_YASAK });
+    if (yasakHatasi) {
+      console.error("[Admin] hesap girişe kapatılamadı:", yasakHatasi.message);
+      return res.status(502).json({ success: false, error: "Giriş engeli konamadı. Lütfen tekrar deneyin." });
+    }
+
+    const { data: sonuc, error } = await admin.rpc("soft_delete_account", {
+      p_id: id,
+      p_phone: tel,
+      p_by: yapanId,
+    });
+    if (error || sonuc !== "tamam") {
+      if (error) console.error("[Admin] profil taşınamadı, yasak kaldırılıyor:", error.message);
+      await admin.auth.admin
+        .updateUserById(id, { ban_duration: "none" })
+        .catch((e) => console.error("[Admin] yasak geri alınamadı:", e?.message || e));
+      if (sonuc === "yok") return res.status(404).json({ success: false, error: "Hesap bulunamadı." });
+      if (sonuc === "telefon") {
+        return res.status(400).json({ success: false, error: "Telefon numarası bu hesabınkiyle eşleşmiyor." });
+      }
+      if (sonuc === "profil_bagli") {
+        return res.status(409).json({
+          success: false,
+          error:
+            "Hesap silinmedi: veritabanında profillere bağlı bir tablo var ve silme o kayıtları kaybettirebilir. " +
+            "supabase-deleted-accounts.sql'deki 3. doğrulama sorgusuna bakın.",
+        });
+      }
+      return res.status(502).json({
+        success: false,
+        error: adimHatasi("Hesap silinemedi.", error, "supabase-deleted-accounts.sql"),
+      });
+    }
+
+    auditLog(req, "ADMIN_ACCOUNT_DELETED", {
+      userId: yapanId,
+      detay: { hesapId: id, rol: profil.user_type },
+    });
+    return res.json({ success: true });
+  } catch (err: any) {
+    console.error("[Admin] hesap silme istisnası:", err?.message || err);
+    return res.status(500).json({ success: false, error: GENERIC_ERROR });
+  }
+});
+
+/** SİLİNEN HESAPLAR — GET /api/admin/silinenler */
+router.get("/silinenler", async (req, res) => {
+  const { userId: yapanId } = res.locals as unknown as SessionLocals;
+  const admin = serviceClient();
+  if (!admin) return res.status(503).json({ success: false, error: NOT_CONFIGURED });
+
+  /* Önce temizlik: süresi dolmuş hesap listede "geri getir" düğmesiyle
+     görünmemeli. */
+  await kaliciSilmeTuru(admin, req, yapanId);
+
+  try {
+    const { data, error } = await admin
+      .from("deleted_accounts")
+      .select("id, profile, full_name, phone, user_type, deleted_at, purge_error")
+      .order("deleted_at", { ascending: false });
+    if (error) {
+      console.error("[Admin] silinen hesaplar okunamadı:", error.message);
+      return res.status(502).json({
+        success: false,
+        error: adimHatasi("Silinen hesaplar alınamadı.", error, "supabase-deleted-accounts.sql"),
+      });
+    }
+
+    return res.json({
+      success: true,
+      accounts: (data ?? []).map((d) => ({
+        id: d.id,
+        fullName: d.full_name,
+        phone: d.phone,
+        username: (d.profile as { username?: string | null } | null)?.username ?? null,
+        userType: d.user_type,
+        deletedAt: d.deleted_at,
+        kaliciSilinme: new Date(new Date(d.deleted_at).getTime() + SILME_BEKLEME_GUN * GUN_MS).toISOString(),
+        kaliciSilinemedi: d.purge_error ?? null,
+      })),
+    });
+  } catch (err: any) {
+    console.error("[Admin] silinen hesaplar istisnası:", err?.message || err);
+    return res.status(500).json({ success: false, error: GENERIC_ERROR });
+  }
+});
+
+/** GERİ GETİR — POST /api/admin/silinenler/:id/geri-getir */
+router.post("/silinenler/:id/geri-getir", async (req, res) => {
+  const { userId: yapanId } = res.locals as unknown as SessionLocals;
+  const { id } = req.params;
+  const admin = serviceClient();
+  if (!admin) return res.status(503).json({ success: false, error: NOT_CONFIGURED });
+  if (!UUID_BICIMI.test(id)) {
+    return res.status(400).json({ success: false, error: "Hesap bulunamadı." });
+  }
+
+  try {
+    const { data: kayit, error: kayitHatasi } = await admin
+      .from("deleted_accounts")
+      .select("id, user_type")
+      .eq("id", id)
+      .maybeSingle();
+    if (kayitHatasi) {
+      console.error("[Admin] silinen hesap okunamadı:", kayitHatasi.message);
+      return res.status(502).json({
+        success: false,
+        error: adimHatasi("Hesap geri getirilemedi.", kayitHatasi, "supabase-deleted-accounts.sql"),
+      });
+    }
+    if (!kayit) return res.status(404).json({ success: false, error: "Silinen hesap bulunamadı." });
+
+    const { error: yasakHatasi } = await admin.auth.admin.updateUserById(id, { ban_duration: "none" });
+    if (yasakHatasi) {
+      console.error("[Admin] giriş engeli kaldırılamadı:", yasakHatasi.message);
+      return res.status(502).json({ success: false, error: "Giriş engeli kaldırılamadı. Lütfen tekrar deneyin." });
+    }
+
+    const { data: sonuc, error } = await admin.rpc("restore_account", { p_id: id });
+    if (error || sonuc !== "tamam") {
+      /* Profil geri gelmediyse yasak geri konuyor. 'yok' iki şey olabilir:
+         aynı anda başka bir istek geri getirdi (profil var — yasak koyma) ya
+         da satır yok oldu. Hangisi olduğu profile bakılarak ayırt ediliyor. */
+      const { data: profilVar } = await admin.from("profiles").select("id").eq("id", id).maybeSingle();
+      if (!profilVar) {
+        await admin.auth.admin
+          .updateUserById(id, { ban_duration: KALICI_YASAK })
+          .catch((e) => console.error("[Admin] yasak geri konamadı:", e?.message || e));
+      }
+      if (error) console.error("[Admin] profil geri konamadı:", error.message);
+      if (error?.code === "23505") {
+        return res.status(409).json({
+          success: false,
+          error:
+            "Geri getirilemedi: bu hesabın telefonu ya da kullanıcı adı bu arada başka bir hesaba verilmiş. " +
+            "Önce o hesabı değiştirin.",
+        });
+      }
+      if (sonuc === "yok") {
+        return profilVar
+          ? res.json({ success: true })
+          : res.status(404).json({ success: false, error: "Silinen hesap bulunamadı." });
+      }
+      return res.status(502).json({
+        success: false,
+        error: adimHatasi("Hesap geri getirilemedi.", error, "supabase-deleted-accounts.sql"),
+      });
+    }
+
+    auditLog(req, "ADMIN_ACCOUNT_RESTORED", {
+      userId: yapanId,
+      detay: { hesapId: id, rol: kayit.user_type },
+    });
+    return res.json({ success: true });
+  } catch (err: any) {
+    console.error("[Admin] geri getirme istisnası:", err?.message || err);
     return res.status(500).json({ success: false, error: GENERIC_ERROR });
   }
 });
