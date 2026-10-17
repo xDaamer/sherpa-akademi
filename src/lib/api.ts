@@ -20,11 +20,18 @@ export interface ApiError {
 
 export class ApiRequestError extends Error implements ApiError {
   status: number;
+  /**
+   * Sunucunun makinece okunacak hata kodu (ör. 'SOZLESME_GEREKLI'). Mesaj
+   * kullanıcıya gösterilmek için; ona göre dal açmak metin değişince sessizce
+   * bozulurdu. Kod yalnızca sunucu gönderdiyse dolu.
+   */
+  code?: string;
 
-  constructor(status: number, message: string) {
+  constructor(status: number, message: string, code?: string) {
     super(message);
     this.name = 'ApiRequestError';
     this.status = status;
+    this.code = code;
   }
 }
 
@@ -120,7 +127,8 @@ export async function apiFetch<T = unknown>(
   if (!response.ok || payload?.success === false) {
     throw new ApiRequestError(
       response.status,
-      typeof payload?.error === 'string' ? payload.error : UNKNOWN_ERROR
+      typeof payload?.error === 'string' ? payload.error : UNKNOWN_ERROR,
+      typeof payload?.code === 'string' ? payload.code : undefined
     );
   }
 

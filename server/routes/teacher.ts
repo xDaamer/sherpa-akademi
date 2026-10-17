@@ -3,6 +3,7 @@ import { userClient } from "../supabase.js";
 import { auditLog } from "../audit.js";
 import { requireSession, requireUserType, type SessionLocals } from "../roles.js";
 import { TR_OFFSET, haftaBasi, haftaSonrasi } from "../weekUtils.js";
+import sozlesmeRouter, { requireSignedContract } from "./teacherContract.js";
 
 /*
  * ÖĞRETMEN PANELİ VERİSİ — /api/teacher/*
@@ -16,6 +17,11 @@ import { TR_OFFSET, haftaBasi, haftaSonrasi } from "../weekUtils.js";
  * bu katmanın bütün meselesi. Servis rolü kullanılırsa yetkilendirme
  * tamamen route kodunun doğruluğuna kalır ve RLS emniyet ağı düşer.
  *
+ * Öğretmen sözleşmesi kapısı ve /sozlesme uçları ./teacherContract.ts'te ve
+ * o dosya serviceClient() KULLANIYOR — belgelenmiş bir istisna (onay kaydı
+ * bir kanıt; öğretmenin kendi jetonuyla yazılamamalı). Gerekçe oranın
+ * başlığında. Bu dosyanın kendisi için kural değişmedi.
+ *
  * İKİ KATMAN, İKİ FARKLI İŞ:
  *   requireUserType("teacher") -> "burası senin panelin değil" (403).
  *   RLS politikaları           -> "bu satır senin değil" (satır hiç gelmez).
@@ -26,6 +32,20 @@ const router = express.Router();
 
 router.use(requireSession);
 router.use(requireUserType("teacher"));
+
+/*
+ * SÖZLEŞME KAPISI — SIRA YÜK TAŞIYOR.
+ *   1. Rol kapısı ÖNCE: öğrenci ya da yönetici buraya gelirse "sözleşmeyi
+ *      onaylayın" değil, rol 403'ü almalı — sözleşme yalnızca öğretmeni
+ *      ilgilendiriyor, ve rol reddi denetim kaydına yalnızca orada yazılıyor.
+ *   2. /sozlesme uçları kapının ÖNÜNDE: arkasında olsalardı onaylamamış bir
+ *      öğretmen onay veremezdi.
+ *   3. Kapı: bundan sonra mount edilen her şey — /ozet, /schedule, ders
+ *      durumu, yorum — sözleşme onaylanmadan 403 SOZLESME_GEREKLI döner.
+ * Bu dosyaya yeni bir uç eklemek onu otomatik olarak kapının arkasına koyar.
+ */
+router.use("/sozlesme", sozlesmeRouter);
+router.use(requireSignedContract);
 
 /**
  * Öğretmenin kim olduğunu döndüren küçük uç.

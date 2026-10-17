@@ -48,6 +48,11 @@ export type AuditAction =
      Görüntüleme olaylarından farklı olarak bunun geriye dönük cevabı
      başka hiçbir yerde yok — lessons.status yalnızca son hâli tutuyor. */
   | "LESSON_STATUS_CHANGED"
+  /* Öğretmen sözleşmesini onaylamak. Asıl kanıt teacher_contract_acceptances
+     satırı (IP, zaman, onaylanan belge kimlikleri); bu kayıt olayı diğer
+     panel olaylarının yanında, aynı zaman çizelgesinde gösteriyor. Detayda
+     yalnızca onaylanan SÜRÜM numaraları var, metin değil. */
+  | "TEACHER_CONTRACT_ACCEPTED"
   /* TEACHER_LESSON_CREATED 2026-09-24 ile 2026-10-09 arasında yazıldı
      (öğretmenin kendi dersini açması); yetki kaldırıldı, bu tip artık
      üretilmiyor. audit_log'da o döneme ait satırlar kalabilir. */

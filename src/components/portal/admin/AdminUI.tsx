@@ -22,6 +22,11 @@ export interface Hesap {
   /* Yalnızca öğretmende: verdiği dersler, notlar. Sadece yöneticiye gelir
      (public.teacher_descriptions); öğretmen kendi açıklamasını göremez. */
   description?: string | null;
+  /* Yalnızca öğretmende: öğretmen sözleşmesinin onay durumu. tarih, İLK
+     onayın zamanı (ISO). Öğretmen olmayan hesaplarda ve sunucu onay tablosunu
+     okuyamadığında (migration henüz uygulanmadıysa) null — rozet o zaman hiç
+     gösterilmiyor; "bilinmiyor"u "bekleniyor" diye göstermek yanlış olurdu. */
+  sozlesme?: { onaylandi: boolean; tarih: string | null } | null;
 }
 
 /** Sunucudaki sınırla aynı (server/routes/admin.ts, ACIKLAMA_MAKS). */

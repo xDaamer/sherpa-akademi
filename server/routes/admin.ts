@@ -2,6 +2,7 @@ import express from "express";
 import { serviceClient } from "../supabase.js";
 import { auditLog } from "../audit.js";
 import { requireSession, requireUserType, type SessionLocals } from "../roles.js";
+import { eksikSemaMi } from "../semaHatasi.js";
 import { TR_OFFSET, haftaBasi, haftaSonrasi } from "../weekUtils.js";
 import {
   type Aralik,
@@ -75,21 +76,13 @@ const NOT_CONFIGURED = "Yönetim servisi şu anda kullanılamıyor.";
  * yani HANGİ ADIMIN düştüğünü söylemek bir sızıntı değil. Ham veritabanı
  * mesajı yine istemciye gitmiyor (sunucu loguna gidiyor).
  *
- * Tablo/fonksiyon/kolon YOK hatası ayrıca tanınıyor: bu, kodun migration'dan
- * önce deploy edildiği anlamına gelir ve çözümü tekrar denemek değil, ilgili
- * SQL dosyasını çalıştırmaktır.
+ * Tablo/fonksiyon/kolon YOK hatası ayrıca tanınıyor (eksikSemaMi, kod listesi
+ * ../semaHatasi.ts'te — sözleşme kapısı da aynı listeyi kullanıyor): bu,
+ * kodun migration'dan önce deploy edildiği anlamına gelir ve çözümü tekrar
+ * denemek değil, ilgili SQL dosyasını çalıştırmaktır.
  */
-const EKSIK_SEMA_KODLARI = new Set([
-  "42P01", // undefined_table
-  "42703", // undefined_column
-  "42883", // undefined_function
-  "PGRST202", // fonksiyon şema önbelleğinde yok
-  "PGRST204", // kolon şema önbelleğinde yok
-  "PGRST205", // tablo şema önbelleğinde yok
-]);
-
 function adimHatasi(adim: string, error: { code?: string } | null | undefined, sqlDosyasi: string): string {
-  return error?.code && EKSIK_SEMA_KODLARI.has(error.code)
+  return eksikSemaMi(error)
     ? `${adim} Veritabanı güncellemesi eksik: Supabase SQL Editor'de ${sqlDosyasi} çalıştırılmalı.`
     : `${adim} Lütfen tekrar deneyin.`;
 }
@@ -185,22 +178,42 @@ function aciklamaNormalize(value: unknown): { hata: string } | { aciklama: strin
 /* ==================================================================== ÖZET */
 
 /**
- * Panelin açılışta ihtiyaç duyduğu her şey: tüm hesaplar ve öğretmenlerin
- * açıklamaları. Dersler ve ödemeler ayrı uçlarda — onlar filtrelenerek
- * çekiliyor ve hesap listesinden çok daha hızlı büyüyor.
+ * Panelin açılışta ihtiyaç duyduğu her şey: tüm hesaplar, öğretmenlerin
+ * açıklamaları ve öğretmen sözleşmesi onay durumu. Dersler ve ödemeler ayrı
+ * uçlarda — onlar filtrelenerek çekiliyor ve hesap listesinden çok daha hızlı
+ * büyüyor.
+ *
+ * `sozlesme` alanı: öğretmende `{ onaylandi, tarih }` — tarih İLK onayın
+ * zamanı (yeniden onay istenmiyor, ilk onay hukuki olarak belirleyici olan);
+ * öğretmen dışındaki hesaplarda null. İki durumda HERKESTE null ve istemci
+ * null'da rozet göstermiyor:
+ *   - Henüz hiç öğretmen sözleşmesi yayınlanmamışsa. Kapı o sırada devre dışı
+ *     ('yok'); her öğretmenin yanında "onay bekleniyor" yazmak, beklenmeyen
+ *     bir onayı bekliyormuş gibi gösterirdi.
+ *   - Sözleşme ya da onay tablosu okunamazsa (migration henüz uygulanmamış
+ *     olabilir). "Onaylamadı" demek yanlış olurdu, çünkü bilinmiyor.
  */
 router.get("/ozet", async (_req, res) => {
   const admin = serviceClient();
   if (!admin) return res.status(503).json({ success: false, error: NOT_CONFIGURED });
 
   try {
-    const [{ data: profiller, error }, aciklamalar] = await Promise.all([
+    const [{ data: profiller, error }, aciklamalar, onaylar, sozlesmeVarMi] = await Promise.all([
       admin
         .from("profiles")
         .select("id, full_name, phone, username, user_type, created_at")
         .order("user_type", { ascending: true })
         .order("full_name", { ascending: true }),
       admin.from("teacher_descriptions").select("teacher_id, description"),
+      /* Artan sırada: aşağıdaki döngü her öğretmen için İLK satırı tutuyor.
+         Satır sayısı öğretmen sayısı kadar (onay bir kez veriliyor; çift
+         tıklama da sunucuda yeni satır yazmıyor), yani tamamını okumak ucuz. */
+      admin
+        .from("teacher_contract_acceptances")
+        .select("teacher_id, accepted_at")
+        .order("accepted_at", { ascending: true }),
+      /* Yayınlanmış bir sözleşme var mı: tek satırlık kimlik okuması, metin yok. */
+      admin.from("teacher_legal_documents").select("id").eq("kind", "ogretmen_sozlesmesi").limit(1),
     ]);
 
     if (error) {
@@ -218,6 +231,25 @@ router.get("/ozet", async (_req, res) => {
       (aciklamalar.data ?? []).map((a) => [a.teacher_id as string, a.description as string]),
     );
 
+    /* Onaylar da aynı toleransla: okunamazsa liste açılıyor, `sozlesme` herkeste
+       null. Sözleşme tablosu henüz yokken deploy edilmesi yönetim panelini
+       kilitlememeli. */
+    if (onaylar.error) {
+      console.error("[Admin] sözleşme onayları okunamadı:", onaylar.error.message);
+    }
+    if (sozlesmeVarMi.error) {
+      console.error("[Admin] sözleşme belgesi okunamadı:", sozlesmeVarMi.error.message);
+    }
+    /* Onay durumu ancak İKİ okuma da başarılıysa ve bir sözleşme yayınlanmışsa
+       gösteriliyor; aksi hâlde herkeste null (bkz. uç yorumu). */
+    const onayDurumuGosterilir =
+      !onaylar.error && !sozlesmeVarMi.error && (sozlesmeVarMi.data ?? []).length > 0;
+    const ilkOnay = new Map<string, string>();
+    for (const o of onaylar.data ?? []) {
+      const id = o.teacher_id as string;
+      if (!ilkOnay.has(id)) ilkOnay.set(id, o.accepted_at as string);
+    }
+
     return res.json({
       success: true,
       accounts: (profiller ?? []).map((p) => ({
@@ -228,6 +260,10 @@ router.get("/ozet", async (_req, res) => {
         userType: p.user_type,
         createdAt: p.created_at,
         description: p.user_type === "teacher" ? aciklamaHaritasi.get(p.id) ?? null : null,
+        sozlesme:
+          p.user_type === "teacher" && onayDurumuGosterilir
+            ? { onaylandi: ilkOnay.has(p.id), tarih: ilkOnay.get(p.id) ?? null }
+            : null,
       })),
     });
   } catch (err: any) {

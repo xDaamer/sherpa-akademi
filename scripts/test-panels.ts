@@ -3,8 +3,9 @@
  * ============================================================================
  * Üç panelin (yönetim, öğretmen, öğrenci) birlikte çalıştığını gerçek HTTP
  * üzerinden ölçer: yönetici hesap açar, ders atar, ücret girer; açılan
- * öğretmen hesabıyla giriş yapılır, ders "işlendi" yapılıp yorum yazılır;
- * açılan öğrenci hesabıyla girilip ders, ödeme ve yorumun göründüğü
+ * öğretmen hesabıyla giriş yapılır, sözleşme kapısı sınanıp sözleşme
+ * onaylanır (yayınlanmış bir sözleşme varsa), ders "işlendi" yapılıp yorum
+ * yazılır; açılan öğrenci hesabıyla girilip ders, ödeme ve yorumun göründüğü
  * doğrulanır. Sonunda roller arası 403'ler sınanır ve test verisi silinir.
  *
  * NEDEN CANLIYA KARŞI ÇALIŞIR
@@ -34,6 +35,15 @@
  * açıklamasına dokunmaz. Açtığı HESAPLARI silmez —
  * panelde hesap silme bilerek yok (bkz. AdminAccounts.tsx); kimlikleri ekrana
  * yazar, gerekirse Supabase Dashboard'dan kaldırılır.
+ *
+ * SÖZLEŞME ONAYI SİLİNEMEZ: öğretmen sözleşmesi yayınlanmışsa betik, kendi
+ * açtığı öğretmen adına teacher_contract_acceptances'a bir satır yazar. O
+ * tablo yalnızca eklemeye açık ve teacher_id'si ON DELETE RESTRICT — yani
+ * satır da, artık o öğretmen hesabı da Dashboard'dan silinemez. Sonda
+ * ayrıca yazdırılır. --teacher ile verilen GERÇEK bir öğretmen adına onay
+ * VERİLMEZ (birinin yerine imza atmak olurdu); o öğretmen onaylamamışsa
+ * kapı testi tek bir KALDI sayılır, öğretmen panelinin geri kalan testleri
+ * ATLANIR ve öğretmen panelden kendisi onaylamalıdır.
  *
  * ÇEREZLER ELLE TAŞINIR: oturum httpOnly çerezde ve Node'un fetch'i çerez
  * saklamıyor. ORIGIN başlığı da elle eklenir: requireTrustedOrigin durum
@@ -217,6 +227,9 @@ async function bosSaatBul(kavanoz: Kavanoz, ogretmenId: string, sureDk: number):
 async function calistir() {
   console.log(`\nPanel testleri — ${BASE}\n`);
 
+  /* Sözleşme onayı geri alınamayan tek yazma; sonda ayrıca raporlanıyor. */
+  let sozlesmeOnayiYazildi = false;
+
   /* =============================================================== YÖNETİCİ */
   console.log("1) Yönetici");
   const yonetici = await girisYap(YONETICI!, "Yönetici");
@@ -249,10 +262,13 @@ async function calistir() {
   );
 
   /* Yönetici, diğer iki panelin uçlarına GİREMEZ: rol kapısı tek rol kabul
-     ediyor ve bu bilinçli (bkz. CLAUDE.md > admin bölümü). */
+     ediyor ve bu bilinçli (bkz. CLAUDE.md > admin bölümü). Cevapta `code`
+     OLMAMALI: /api/teacher'da rol kapısı sözleşme kapısından önce çalışıyor,
+     yani yönetici SOZLESME_GEREKLI değil, düz rol 403'ünü almalı. */
   for (const yol of ["/api/portal/ozet", "/api/teacher/schedule"]) {
     const x = await istek(yonetici.kavanoz, yol);
-    kontrol(`Yönetici -> ${yol} ENGELLENİYOR (403)`, x.status === 403, `${x.status}`);
+    kontrol(`Yönetici -> ${yol} ENGELLENİYOR (rol 403'ü, kodsuz)`, x.status === 403 && x.body?.code === undefined,
+      `${x.status} ${x.body?.code ?? ""}`);
   }
 
   /* Son yöneticinin kendini kilitlemesi engelleniyor. */
@@ -654,64 +670,170 @@ async function calistir() {
     kontrol("Olmayan kullanıcı adı -> 401 (aynı mesaj)", yok.status === 401, `${yok.status}`);
   }
 
-  r = await istek(ogretmen.kavanoz, "/api/teacher/schedule");
-  kontrol("Program -> 200", r.status === 200, `${r.status}`);
-  kontrol(
-    "Atanan ders öğretmenin programında",
-    (r.body?.lessons ?? []).some((d: any) => d.id === dersId),
-    `${(r.body?.lessons ?? []).length} ders`,
-  );
+  /* ========================================================= SÖZLEŞME KAPISI */
+  /* Yayınlanmış bir öğretmen sözleşmesi varken onaylamamış öğretmenin panel
+     uçlarının HEPSİ 403 SOZLESME_GEREKLI dönmeli; onay ucu kapının önünde.
+     Bu blok aşağıdaki ilk /schedule çağrısından ÖNCE olmak zorunda: onay
+     verilmeden o çağrı 403 alırdı. Sözleşme henüz yayınlanmamışsa kapı devre
+     dışı ve test atlanıyor — KALDI sayılmıyor. */
+  console.log("\n6a) Sözleşme kapısı");
+  /* Bu bloktan sonra öğretmen hâlâ onaysızsa true: kalan öğretmen testleri atlanır. */
+  let sozlesmeKapali = false;
+  r = await istek(ogretmen.kavanoz, "/api/teacher/sozlesme");
+  kontrol("GET /api/teacher/sozlesme -> 200", r.status === 200, `${r.status} ${r.body?.error ?? ""}`);
+  /* Uç hata döndüyse (502/503) kapının durumu bilinmiyor; kalan öğretmen
+     testleri tek tek 403'e düşüp raporu boğmasın. */
+  if (r.status !== 200) sozlesmeKapali = true;
 
-  /* Açıklama yalnızca yöneticinin: öğretmenin kendi uçlarının hiçbirinde
-     geçmemeli. (Veritabanı katmanı ayrıca supabase-teacher-panel-tests.sql
-     33-35'te sınanıyor.) */
-  if (testOgretmeni) {
-    const me = await istek(ogretmen.kavanoz, "/api/auth/me");
-    const ozet = await istek(ogretmen.kavanoz, "/api/teacher/ozet");
+  if (r.status === 200 && r.body?.gerekli === false) {
+    console.log("  ATLANDI  Kapı testi — sözleşme henüz yayınlanmamış ya da bu öğretmen zaten onaylamış.");
+  } else if (r.status === 200 && r.body?.gerekli === true) {
+    const b = r.body.belgeler ?? {};
     kontrol(
-      "Öğretmen kendi açıklamasını GÖREMİYOR",
-      !JSON.stringify([r.body, me.body, ozet.body]).includes(TEST_ACIKLAMA),
+      "Üç belge de geliyor (sözleşme, aydınlatma metni, koşullar)",
+      ["sozlesme", "aydinlatma", "kosullar"].every(
+        (k) => typeof b[k]?.id === "string" && typeof b[k]?.version === "number" && Boolean(b[k]?.body),
+      ),
+      ["sozlesme", "aydinlatma", "kosullar"].map((k) => `${k} v${b[k]?.version ?? "?"}`).join(", "),
     );
+    const gecerliOnay = {
+      sozlesmeId: b.sozlesme?.id,
+      aydinlatmaId: b.aydinlatma?.id,
+      kosullarId: b.kosullar?.id,
+      aydinlatmaOkundu: true,
+      kosullarKabul: true,
+    };
+    const onayGonder = (govde: Record<string, unknown>) =>
+      istek(ogretmen.kavanoz, "/api/teacher/sozlesme", { method: "POST", body: govde });
+
+    for (const yol of ["/api/teacher/schedule", "/api/teacher/ozet"]) {
+      const x = await istek(ogretmen.kavanoz, yol);
+      kontrol(
+        `Onaysız öğretmen -> ${yol} ENGELLENİYOR (403 SOZLESME_GEREKLI)`,
+        x.status === 403 && x.body?.code === "SOZLESME_GEREKLI",
+        `${x.status} ${x.body?.code ?? ""}`,
+      );
+    }
+
+    let x = await onayGonder({ ...gecerliOnay, kosullarKabul: false });
+    kontrol("Hizmet Koşulları kabul edilmeden onay ENGELLENİYOR (400)", x.status === 400, `${x.status}`);
+
+    x = await onayGonder({ ...gecerliOnay, aydinlatmaOkundu: false });
+    kontrol("Aydınlatma metni okundu işaretlenmeden onay ENGELLENİYOR (400)", x.status === 400, `${x.status}`);
+
+    /* Güncel olmayan (burada: hiç var olmayan) bir sözleşme kimliği —
+       öğretmen modal açıkken yeni sürüm yayınlanmış gibi. */
+    x = await onayGonder({ ...gecerliOnay, sozlesmeId: crypto.randomUUID() });
+    kontrol(
+      "Güncel olmayan sözleşme kimliği ENGELLENİYOR (409 SOZLESME_GUNCELLENDI)",
+      x.status === 409 && x.body?.code === "SOZLESME_GUNCELLENDI",
+      `${x.status} ${x.body?.code ?? ""}`,
+    );
+
+    const ozettekiSozlesme = async () => {
+      const o = await istek(yonetici.kavanoz, "/api/admin/ozet");
+      return (o.body?.accounts ?? []).find((h: any) => h.id === ogretmenId)?.sozlesme;
+    };
+
+    /* Onay yalnızca BETİĞİN KENDİ öğretmeni adına (bkz. baştaki not). */
+    if (testOgretmeni) {
+      const once = await ozettekiSozlesme();
+      kontrol("Yönetim listesi öğretmeni ONAY BEKLİYOR gösteriyor", once?.onaylandi === false && once?.tarih === null,
+        JSON.stringify(once));
+
+      x = await onayGonder(gecerliOnay);
+      kontrol("Sözleşme onaylandı (200)", x.status === 200, `${x.status} ${x.body?.error ?? ""}`);
+      if (x.status === 200) sozlesmeOnayiYazildi = true;
+
+      x = await onayGonder(gecerliOnay);
+      kontrol("İkinci onay da 200 (çift tık; yeni satır yazılmıyor)", x.status === 200, `${x.status}`);
+
+      x = await istek(ogretmen.kavanoz, "/api/teacher/sozlesme");
+      kontrol("Onaydan sonra sözleşme artık gerekmiyor", x.status === 200 && x.body?.gerekli === false,
+        `${x.status} gerekli=${x.body?.gerekli}`);
+
+      const sonra = await ozettekiSozlesme();
+      kontrol(
+        "Yönetim listesi öğretmeni ONAYLI ve tarihli gösteriyor",
+        sonra?.onaylandi === true && typeof sonra?.tarih === "string",
+        JSON.stringify(sonra),
+      );
+    } else {
+      kontrol(
+        "Verilen öğretmen sözleşmeyi onaylamış",
+        false,
+        "betik gerçek bir öğretmen adına onay vermez; öğretmen panelden kendisi onaylamalı",
+      );
+    }
+    sozlesmeKapali = !sozlesmeOnayiYazildi;
   }
 
-  /* Tamamlanmamış derse yorum reddedilmeli. */
-  r = await istek(ogretmen.kavanoz, `/api/teacher/lessons/${dersId}/comment`, {
-    method: "PUT",
-    body: { comment: "Erken yorum denemesi" },
-  });
-  kontrol("Tamamlanmamış derse yorum ENGELLENİYOR (400)", r.status === 400, `${r.status}`);
-
-  r = await istek(ogretmen.kavanoz, `/api/teacher/lessons/${dersId}/status`, {
-    method: "PATCH",
-    body: { status: "completed" },
-  });
-  kontrol('Ders "işlendi" yapıldı (200)', r.status === 200, `${r.status}`);
-
-  r = await istek(ogretmen.kavanoz, `/api/teacher/lessons/${dersId}/status`, {
-    method: "PATCH",
-    body: { status: "cancelled" },
-  });
-  kontrol("Öğretmen dersi İPTAL EDEMİYOR (400)", r.status === 400, `${r.status}`);
-
+  /* Onaysız kalan öğretmenle (--teacher ile verilen gerçek bir öğretmen ya da
+     onayı başarısız olan test öğretmeni) aşağıdaki her öğretmen ucu
+     403 SOZLESME_GEREKLI döner. Kapı zaten tek bir KALDI olarak raporlandı;
+     ardından gelen onlarca 403'ü KALDI diye listelemek raporu okunmaz yapardı. */
   const YORUM = "TEST yorumu — uçtan uca doğrulama.";
-  r = await istek(ogretmen.kavanoz, `/api/teacher/lessons/${dersId}/comment`, {
-    method: "PUT",
-    body: { comment: YORUM },
-  });
-  kontrol("Yorum yazıldı (200)", r.status === 200, `${r.status}`);
+  if (sozlesmeKapali) {
+    console.log("  ATLANDI  Program, ders durumu ve yorum testleri — öğretmen sözleşmeyi onaylamamış.");
+  } else {
+    r = await istek(ogretmen.kavanoz, "/api/teacher/schedule");
+    kontrol("Program -> 200", r.status === 200, `${r.status}`);
+    kontrol(
+      "Atanan ders öğretmenin programında",
+      (r.body?.lessons ?? []).some((d: any) => d.id === dersId),
+      `${(r.body?.lessons ?? []).length} ders`,
+    );
 
-  r = await istek(ogretmen.kavanoz, `/api/teacher/lessons/${dersId}/comment`, {
-    method: "PUT",
-    body: { comment: "   " },
-  });
-  kontrol("Boş yorum ENGELLENİYOR (400)", r.status === 400, `${r.status}`);
+    /* Açıklama yalnızca yöneticinin: öğretmenin kendi uçlarının hiçbirinde
+       geçmemeli. (Veritabanı katmanı ayrıca supabase-teacher-panel-tests.sql
+       33-35'te sınanıyor.) */
+    if (testOgretmeni) {
+      const me = await istek(ogretmen.kavanoz, "/api/auth/me");
+      const ozet = await istek(ogretmen.kavanoz, "/api/teacher/ozet");
+      kontrol(
+        "Öğretmen kendi açıklamasını GÖREMİYOR",
+        !JSON.stringify([r.body, me.body, ozet.body]).includes(TEST_ACIKLAMA),
+      );
+    }
 
-  r = await istek(
-    ogretmen.kavanoz,
-    "/api/teacher/lessons/99999999-9999-4999-8999-999999999999/comment",
-    { method: "PUT", body: { comment: "Başkasının dersi" } },
-  );
-  kontrol("Başkasının dersine yorum ENGELLENİYOR (403)", r.status === 403, `${r.status}`);
+    /* Tamamlanmamış derse yorum reddedilmeli. */
+    r = await istek(ogretmen.kavanoz, `/api/teacher/lessons/${dersId}/comment`, {
+      method: "PUT",
+      body: { comment: "Erken yorum denemesi" },
+    });
+    kontrol("Tamamlanmamış derse yorum ENGELLENİYOR (400)", r.status === 400, `${r.status}`);
+
+    r = await istek(ogretmen.kavanoz, `/api/teacher/lessons/${dersId}/status`, {
+      method: "PATCH",
+      body: { status: "completed" },
+    });
+    kontrol('Ders "işlendi" yapıldı (200)', r.status === 200, `${r.status}`);
+
+    r = await istek(ogretmen.kavanoz, `/api/teacher/lessons/${dersId}/status`, {
+      method: "PATCH",
+      body: { status: "cancelled" },
+    });
+    kontrol("Öğretmen dersi İPTAL EDEMİYOR (400)", r.status === 400, `${r.status}`);
+
+    r = await istek(ogretmen.kavanoz, `/api/teacher/lessons/${dersId}/comment`, {
+      method: "PUT",
+      body: { comment: YORUM },
+    });
+    kontrol("Yorum yazıldı (200)", r.status === 200, `${r.status}`);
+
+    r = await istek(ogretmen.kavanoz, `/api/teacher/lessons/${dersId}/comment`, {
+      method: "PUT",
+      body: { comment: "   " },
+    });
+    kontrol("Boş yorum ENGELLENİYOR (400)", r.status === 400, `${r.status}`);
+
+    r = await istek(
+      ogretmen.kavanoz,
+      "/api/teacher/lessons/99999999-9999-4999-8999-999999999999/comment",
+      { method: "PUT", body: { comment: "Başkasının dersi" } },
+    );
+    kontrol("Başkasının dersine yorum ENGELLENİYOR (403)", r.status === 403, `${r.status}`);
+  }
 
   /* ================================================================= ÖĞRENCİ */
   console.log("\n7) Öğrenci paneli");
@@ -733,8 +855,12 @@ async function calistir() {
   r = await istek(ogrenci.kavanoz, "/api/portal/yorumlar");
   kontrol("Koçun yorumları -> 200", r.status === 200, `${r.status}`);
   const yorumlu = (r.body?.lessons ?? []).find((d: any) => d.id === dersId);
-  kontrol("Öğretmenin yorumu öğrenciye görünüyor", yorumlu?.comment?.text === YORUM,
-    `${yorumlu?.comment?.text ?? "YOK"}`);
+  if (sozlesmeKapali) {
+    console.log("  ATLANDI  Öğretmenin yorumu — öğretmen sözleşmeyi onaylamadığı için yorum yazılmadı.");
+  } else {
+    kontrol("Öğretmenin yorumu öğrenciye görünüyor", yorumlu?.comment?.text === YORUM,
+      `${yorumlu?.comment?.text ?? "YOK"}`);
+  }
 
   /* =========================================================== ROL İZOLASYONU */
   console.log("\n8) Rol izolasyonu");
@@ -763,6 +889,24 @@ async function calistir() {
   kontrol("Öğrenci -> /api/teacher/schedule ENGELLENİYOR (403)",
     ogrenciOgretmenUcu.status === 403, `${ogrenciOgretmenUcu.status}`);
 
+  /* Sözleşme uçları sözleşme kapısının önünde ama ROL kapısının arkasında:
+     öğrenci "sözleşmeyi onaylayın" değil, rol 403'ünü almalı (kodsuz). */
+  const ogrenciSozlesme = await istek(ogrenci.kavanoz, "/api/teacher/sozlesme");
+  kontrol("Öğrenci -> /api/teacher/sozlesme ENGELLENİYOR (rol 403'ü)",
+    ogrenciSozlesme.status === 403 && ogrenciSozlesme.body?.code === undefined,
+    `${ogrenciSozlesme.status} ${ogrenciSozlesme.body?.code ?? ""}`);
+  const ogrenciOnay = await istek(ogrenci.kavanoz, "/api/teacher/sozlesme", {
+    method: "POST",
+    body: {
+      sozlesmeId: crypto.randomUUID(),
+      aydinlatmaId: crypto.randomUUID(),
+      kosullarId: crypto.randomUUID(),
+      aydinlatmaOkundu: true,
+      kosullarKabul: true,
+    },
+  });
+  kontrol("Öğrenci sözleşme ONAYLAYAMIYOR (403)", ogrenciOnay.status === 403, `${ogrenciOnay.status}`);
+
   const ogretmenOgrenciUcu = await istek(ogretmen.kavanoz, "/api/portal/ozet");
   kontrol("Öğretmen -> /api/portal/ozet ENGELLENİYOR (403)",
     ogretmenOgrenciUcu.status === 403, `${ogretmenOgrenciUcu.status}`);
@@ -774,6 +918,7 @@ async function calistir() {
     "/api/portal/ozet",
     "/api/portal/yorumlar",
     "/api/teacher/schedule",
+    "/api/teacher/sozlesme",
     "/api/admin/ozet",
     "/api/admin/basvurular",
   ]) {
@@ -801,6 +946,13 @@ async function calistir() {
     }
     if (ogrenciId) console.log(`  TEST Ogrenci   ${OGRENCI!.phone}`);
     console.log(`  şifre: ${URETILEN.password}`);
+  }
+
+  if (sozlesmeOnayiYazildi) {
+    console.log("\nSÖZLEŞME ONAYI YAZILDI (silinemez):");
+    console.log(`  TEST Ogretmen ${OGRETMEN!.phone} adına teacher_contract_acceptances'a bir satır eklendi.`);
+    console.log("  Tablo yalnızca eklemeye açık ve teacher_id ON DELETE RESTRICT — bu öğretmen");
+    console.log("  hesabı artık Dashboard'dan da silinemez.");
   }
 
   process.exit(gecen === toplam ? 0 : 1);

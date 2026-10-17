@@ -75,12 +75,29 @@ const DURUM_ETIKET: Record<ProgramDersi['status'], { metin: string; sinif: strin
   cancelled: { metin: 'İptal', sinif: 'bg-slate-200 text-slate-500' },
 };
 
+/*
+ * SÖZLEŞME KAPISI: panel açıkken bir öğretmen sözleşmesi yayınlanırsa bu
+ * satırdaki PATCH/PUT istekleri 403 SOZLESME_GEREKLI dönüyor. Ham 403
+ * metnini satırın altına basmak yerine sayfaya haber veriliyor; sayfa kapıyı
+ * yeniden sorup onay penceresini açıyor. İşleyici `false` dönerse (sayfanın
+ * döngü sigortası atmış, bkz. TeacherDashboardPage) iş satıra geri kalıyor
+ * ve mesaj her zamanki gibi gösteriliyor — sessizce yutulmuyor.
+ */
+type SozlesmeGerekliIsleyici = () => boolean | void;
+
+function sozlesmeyeDevredildi(err: unknown, isleyici?: SozlesmeGerekliIsleyici): boolean {
+  if (!isleyici) return false;
+  if (!(err instanceof ApiRequestError) || err.code !== 'SOZLESME_GEREKLI') return false;
+  return isleyici() !== false;
+}
+
 const DersSatiri: React.FC<{
   ders: ProgramDersi;
   acik: boolean;
   onAcKapa: () => void;
   onGuncelle: (id: string, degisiklik: Partial<ProgramDersi>) => void;
-}> = ({ ders, acik, onAcKapa, onGuncelle }) => {
+  onSozlesmeGerekli?: SozlesmeGerekliIsleyici;
+}> = ({ ders, acik, onAcKapa, onGuncelle, onSozlesmeGerekli }) => {
   const [metin, setMetin] = useState(ders.comment?.text ?? '');
   const [mesgul, setMesgul] = useState(false);
   const [kaydedildi, setKaydedildi] = useState(false);
@@ -107,6 +124,7 @@ const DersSatiri: React.FC<{
       });
       onGuncelle(ders.id, { status: yeni });
     } catch (err) {
+      if (sozlesmeyeDevredildi(err, onSozlesmeGerekli)) return;
       setHata(err instanceof ApiRequestError ? err.message : 'Ders durumu güncellenemedi.');
     } finally {
       setMesgul(false);
@@ -128,6 +146,7 @@ const DersSatiri: React.FC<{
         setKaydedildi(true);
       }
     } catch (err) {
+      if (sozlesmeyeDevredildi(err, onSozlesmeGerekli)) return;
       setHata(err instanceof ApiRequestError ? err.message : 'Yorum kaydedilemedi.');
     } finally {
       setMesgul(false);
@@ -290,7 +309,9 @@ const DersSatiri: React.FC<{
 export const TeacherLessonList: React.FC<{
   lessons: ProgramDersi[];
   onGuncelle: (id: string, degisiklik: Partial<ProgramDersi>) => void;
-}> = ({ lessons, onGuncelle }) => {
+  /** Bir istek SOZLESME_GEREKLI ile reddedilince çağrılır (bkz. yukarıda). */
+  onSozlesmeGerekli?: SozlesmeGerekliIsleyici;
+}> = ({ lessons, onGuncelle, onSozlesmeGerekli }) => {
   /* Aynı anda tek satır açık: iki uzun yorum kutusunu yan yana açmanın
      faydası yok, listeyi de okunmaz hâle getirir. */
   const [acikId, setAcikId] = useState<string | null>(null);
@@ -328,6 +349,7 @@ export const TeacherLessonList: React.FC<{
               acik={acikId === ders.id}
               onAcKapa={() => setAcikId(acikId === ders.id ? null : ders.id)}
               onGuncelle={onGuncelle}
+              onSozlesmeGerekli={onSozlesmeGerekli}
             />
           ))}
         </ul>

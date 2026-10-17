@@ -13,6 +13,7 @@ import {
   Bos,
   ROL_ETIKET,
   ACIKLAMA_MAKS,
+  sadeceTarih,
   type Hesap,
 } from './AdminUI';
 import { MusaitlikDuzenleyici } from './AdminAvailability';
@@ -361,6 +362,22 @@ export const AdminAccounts: React.FC<{
                   {h.id === user?.id && (
                     <span className="text-[10px] font-bold uppercase tracking-wide text-slate-400">
                       siz
+                    </span>
+                  )}
+                  {/* Sözleşme rozeti. Alan yoksa (null: sunucu onay tablosunu
+                      okuyamadı) hiçbir şey çizilmiyor — bilinmeyen durumu
+                      "bekleniyor" diye göstermek yöneticiyi yanıltırdı. */}
+                  {h.userType === 'teacher' && h.sozlesme && (
+                    <span
+                      className={`rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide ${
+                        h.sozlesme.onaylandi
+                          ? 'bg-emerald-100 text-emerald-800'
+                          : 'bg-amber-100 text-amber-800'
+                      }`}
+                    >
+                      {h.sozlesme.onaylandi
+                        ? `Sözleşme onaylı${h.sozlesme.tarih ? ` · ${sadeceTarih(h.sozlesme.tarih)}` : ''}`
+                        : 'Sözleşme onayı bekleniyor'}
                     </span>
                   )}
 

@@ -1,5 +1,5 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { ChevronLeft, ChevronRight, CalendarDays } from 'lucide-react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { ChevronLeft, ChevronRight, CalendarDays, FileWarning, LogOut } from 'lucide-react';
 import { PageMeta } from '../components/PageMeta';
 import { Button } from '../components/ui/Button';
 import { useAuth } from '../context/AuthContext';
@@ -15,6 +15,10 @@ import {
   trTarih,
   type ProgramDersi,
 } from '../components/portal/TeacherLessonList';
+import {
+  TeacherContractModal,
+  type Belgeler,
+} from '../components/portal/TeacherContractModal';
 
 /*
  * ÖĞRETMEN PANELİ — portal.sherpakademi.com/ogretmen
@@ -36,6 +40,14 @@ import {
  * ile 2026-10-09 arasında kendi öğrencilerine ders açabiliyordu; bu yetki
  * geri alındı. Öğretmenin elindeki tek yazma, dersi /status ucuyla
  * 'completed' ile 'scheduled' arasında çevirmek ve yorum yazmak.
+ *
+ * SÖZLEŞME KAPISI: panel, öğretmen sözleşmesi onaylanmadan açılmıyor. Kapı
+ * route'ta değil SAYFANIN İÇİNDE, çünkü bu sayfa iki adreste yaşıyor
+ * (portal host'unda /ogretmen, 'both' modunda /panel/ogretmen) ve kapının
+ * ikisinde de geçerli olması gerekiyor. Önce /api/teacher/sozlesme
+ * soruluyor; program ancak cevap "onaylı" (ya da "henüz sözleşme yok")
+ * olunca çekiliyor. Bu da bir güvenlik sınırı değil — sunucu, onay yokken
+ * /api/teacher/* uçlarının hepsini 403 SOZLESME_GEREKLI ile reddediyor.
  */
 
 /*
@@ -47,6 +59,24 @@ interface ProgramCevabi {
   weekStart: string;
   lessons: ProgramDersi[];
 }
+
+type SozlesmeCevabi =
+  | { success: true; gerekli: false }
+  | { success: true; gerekli: true; belgeler: Belgeler };
+
+/*
+ * Sözleşme kapısının durumu:
+ *   kontrol -> soruluyor; panel henüz çizilmiyor
+ *   gerekli -> onay penceresi, arkasında panel YOK
+ *   tamam   -> onaylı ya da henüz yayınlanmış bir sözleşme yok; panel açık
+ *   hata    -> durum öğrenilemedi; içeri ALINMIYOR (sunucu zaten 403 dönerdi),
+ *              yeniden deneme düğmesi gösteriliyor
+ */
+type SozlesmeDurumu =
+  | { durum: 'kontrol' }
+  | { durum: 'gerekli'; belgeler: Belgeler }
+  | { durum: 'tamam' }
+  | { durum: 'hata'; mesaj: string };
 
 /*
  * SAAT DİLİMİ AÇIKÇA BELİRTİLİYOR, tarayıcının yereline BIRAKILMIYOR.
@@ -127,10 +157,62 @@ const DersKarti: React.FC<{ ders: ProgramDersi; saatGoster?: boolean }> = ({
 };
 
 export const TeacherDashboardPage: React.FC = () => {
-  const { user } = useAuth();
+  const { user, logout } = useAuth();
+  const [sozlesme, setSozlesme] = useState<SozlesmeDurumu>({ durum: 'kontrol' });
   const [program, setProgram] = useState<ProgramCevabi | null>(null);
   const [hata, setHata] = useState<string | null>(null);
   const [yukleniyor, setYukleniyor] = useState(true);
+
+  /*
+   * Sözleşme durumunu sor. `sessiz`: ekranı "Yükleniyor"a çevirmeden yenile —
+   * onay penceresi 409 sonrası belgeleri yeniden çekerken kullanıyor; aksi
+   * halde pencere sökülüp yeniden kurulur ve gösterdiği mesaj kaybolurdu.
+   */
+  const sozlesmeKontrol = useCallback(async (sessiz = false) => {
+    if (!sessiz) setSozlesme({ durum: 'kontrol' });
+
+    try {
+      const cevap = await apiFetch<SozlesmeCevabi>('/api/teacher/sozlesme');
+      setSozlesme(
+        cevap.gerekli ? { durum: 'gerekli', belgeler: cevap.belgeler } : { durum: 'tamam' }
+      );
+    } catch (err) {
+      setSozlesme({
+        durum: 'hata',
+        mesaj:
+          err instanceof ApiRequestError ? err.message : 'Sözleşme onay durumu öğrenilemedi.',
+      });
+    }
+  }, []);
+
+  useEffect(() => {
+    void sozlesmeKontrol();
+  }, [sozlesmeKontrol]);
+
+  const sozlesmeTamam = sozlesme.durum === 'tamam';
+
+  /*
+   * Döngü sigortası: program isteği SOZLESME_GEREKLI dönünce kapı yeniden
+   * soruluyor. Kapının cevabı ile sunucunun ara katmanı bir gün ayrışırsa
+   * ("gerekli değil" deyip yine 403 verirse) bu, kontrol -> tamam -> 403 ->
+   * kontrol diye sonsuza kadar dönerdi. Arka arkaya ikinci 403'te yeniden
+   * sormak yerine hatayı gösteriyoruz; başarılı bir program isteği sigortayı
+   * sıfırlıyor.
+   */
+  const sozlesmeYenidenSoruldu = useRef(false);
+
+  /*
+   * Bir istek SOZLESME_GEREKLI dönünce kapıyı yeniden sor — sigortaya
+   * uyarak. true: soruldu, onay penceresi gelecek (çağıran hata göstermesin);
+   * false: sigorta atmış, çağıran hatayı kendisi göstersin. Program isteği
+   * ve ders listesindeki PATCH/PUT istekleri aynı yoldan geçiyor.
+   */
+  const sozlesmeyiYenidenSor = useCallback((): boolean => {
+    if (sozlesmeYenidenSoruldu.current) return false;
+    sozlesmeYenidenSoruldu.current = true;
+    void sozlesmeKontrol();
+    return true;
+  }, [sozlesmeKontrol]);
 
   /*
    * İstenen hafta. null: "sunucu bugünün haftasını seçsin" — ilk açılışta
@@ -147,16 +229,26 @@ export const TeacherDashboardPage: React.FC = () => {
 
     return apiFetch<ProgramCevabi>(yol)
       .then((veri) => {
+        sozlesmeYenidenSoruldu.current = false;
         setProgram(veri);
         setHata(null);
       })
       .catch((err) => {
+        /* Sunucu sözleşme onayı istiyorsa hata satırı değil, onay penceresi
+           doğru cevap — kapı yeniden soruluyor (bir kez; bkz. sigorta). */
+        if (
+          err instanceof ApiRequestError &&
+          err.code === 'SOZLESME_GEREKLI' &&
+          sozlesmeyiYenidenSor()
+        ) {
+          return;
+        }
         setHata(err instanceof ApiRequestError ? err.message : 'Ders programı alınamadı.');
       })
       .finally(() => {
         setYukleniyor(false);
       });
-  }, []);
+  }, [sozlesmeyiYenidenSor]);
 
   /*
    * Bir satır işaretlenince/yorumlanınca TÜM haftayı yeniden çekmiyoruz:
@@ -175,7 +267,10 @@ export const TeacherDashboardPage: React.FC = () => {
     );
   }, []);
 
+  /* Program yalnızca sözleşme kapısı açıkken çekiliyor: onaysız bir istek
+     zaten 403 dönerdi, üstelik onay penceresinin arkasında boşuna. */
   useEffect(() => {
+    if (!sozlesmeTamam) return;
     let iptal = false;
     void getir(istenenHafta).then(() => {
       if (iptal) return;
@@ -183,7 +278,7 @@ export const TeacherDashboardPage: React.FC = () => {
     return () => {
       iptal = true;
     };
-  }, [getir, istenenHafta]);
+  }, [getir, istenenHafta, sozlesmeTamam]);
 
   const haftaBasi = program?.weekStart ?? null;
 
@@ -225,18 +320,84 @@ export const TeacherDashboardPage: React.FC = () => {
   const ilkAd = user?.fullName?.trim().split(' ')[0];
   const yerel = routingMode() === 'both';
 
+  /* Öğrenci panelindeki gerekçenin aynısı: panel kendi alt alan adında
+     yaşıyor, adresi ana siteninki değil. 'both' modunda (localhost/
+     önizleme) ayrı host olmadığı için ana origin doğru cevap. */
+  const meta = (
+    <PageMeta
+      title="Öğretmen Paneli | Sherpa Akademi"
+      description="Sherpa Akademi öğretmen paneli."
+      origin={yerel ? SITE_URL : need.portal.domain}
+      path={yerel ? `/panel${TEACHER_PATH}` : TEACHER_PATH}
+      noIndex
+    />
+  );
+
+  /* Erken dönüşler bütün hook'lardan SONRA: hook sırası her render'da aynı
+     kalmalı. RequireAuth/RequireRole'un yükleme ekranıyla aynı görünüm. */
+  if (sozlesme.durum === 'kontrol') {
+    return (
+      <>
+        {meta}
+        <div className="flex min-h-dvh items-center justify-center bg-slate-50">
+          <p className="text-sm font-medium text-slate-500">Yükleniyor...</p>
+        </div>
+      </>
+    );
+  }
+
+  if (sozlesme.durum === 'hata') {
+    return (
+      <>
+        {meta}
+        <div className="flex min-h-dvh items-center justify-center bg-slate-50 px-4">
+          <div className="w-full max-w-md rounded-3xl border border-slate-200 bg-white p-8 text-center shadow-sm">
+            <span className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-rose-100 text-rose-600">
+              <FileWarning className="h-6 w-6" />
+            </span>
+            <h1 className="text-xl font-extrabold tracking-tight text-[#191F61]">
+              Panel şu an açılamadı
+            </h1>
+            <p role="alert" className="mt-2 text-sm text-slate-600">
+              {sozlesme.mesaj}
+            </p>
+            <div className="mt-6 flex flex-col items-center gap-2">
+              <Button onClick={() => void sozlesmeKontrol()}>Tekrar dene</Button>
+              <Button variant="ghost" size="sm" onClick={() => void logout()}>
+                <LogOut className="h-4 w-4" />
+                Çıkış yap
+              </Button>
+            </div>
+          </div>
+        </div>
+      </>
+    );
+  }
+
+  /*
+   * Onay penceresi açıkken ARKADA PANEL ÇİZİLMİYOR — ne PanelHeader ne
+   * program. Bilinçli: arkada etkileşimli eleman olmayınca Tab'ın kaçacağı
+   * bir yer kalmıyor, ayrıca bir odak tuzağı yazmaya gerek yok; ve panelin
+   * hiçbir parçası (başlıktaki bağlantılar dahil) onaydan önce kullanılamıyor.
+   * Çıkış düğmesi pencerenin kendisinde.
+   */
+  if (sozlesme.durum === 'gerekli') {
+    return (
+      <>
+        {meta}
+        <div className="min-h-dvh bg-slate-50" />
+        <TeacherContractModal
+          belgeler={sozlesme.belgeler}
+          onKabul={() => setSozlesme({ durum: 'tamam' })}
+          onYenile={() => sozlesmeKontrol(true)}
+        />
+      </>
+    );
+  }
+
   return (
     <>
-      {/* Öğrenci panelindeki gerekçenin aynısı: panel kendi alt alan adında
-          yaşıyor, adresi ana siteninki değil. 'both' modunda (localhost/
-          önizleme) ayrı host olmadığı için ana origin doğru cevap. */}
-      <PageMeta
-        title="Öğretmen Paneli | Sherpa Akademi"
-        description="Sherpa Akademi öğretmen paneli."
-        origin={yerel ? SITE_URL : need.portal.domain}
-        path={yerel ? `/panel${TEACHER_PATH}` : TEACHER_PATH}
-        noIndex
-      />
+      {meta}
 
       <div className="min-h-dvh bg-slate-50">
         <PanelHeader rozet={{ metin: 'Öğretmen', ton: 'mint' }} genislik="max-w-6xl" />
@@ -409,7 +570,11 @@ export const TeacherDashboardPage: React.FC = () => {
             cevaplıyor; ikisi de tek istekten (program) besleniyor, o yüzden
             bir satır işaretlenince ızgaradaki rozeti de anında değişiyor.
           */}
-          <TeacherLessonList lessons={program?.lessons ?? []} onGuncelle={dersGuncelle} />
+          <TeacherLessonList
+            lessons={program?.lessons ?? []}
+            onGuncelle={dersGuncelle}
+            onSozlesmeGerekli={sozlesmeyiYenidenSor}
+          />
         </main>
       </div>
     </>

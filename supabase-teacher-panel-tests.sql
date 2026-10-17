@@ -21,6 +21,25 @@
 -- (supabase-teacher-descriptions.sql): öğretmen ve öğrenci tabloyu OKUYAMAZ
 -- ve YAZAMAZ, üçü de RED bekliyor. HENÜZ ÇALIŞTIRILMADI.
 --
+-- 36-38 numaralı testler 2026-10-17'de öğretmen sözleşmesi için eklendi
+-- (supabase-teacher-contract.sql): öğretmen sözleşme belgelerini OKUYAMAZ,
+-- kendi onay kaydını YAZAMAZ ve durum RPC'sini ÇAĞIRAMAZ — üçü de RED
+-- bekliyor ve bu üçünde YALNIZCA 42501 geçiyor sayılıyor (37'de bir FK ya
+-- da belge türü hatası sahte bir geçiş olurdu). HENÜZ ÇALIŞTIRILMADI.
+--
+-- BAĞIMLILIK: dosya iki migration'ın uygulanmış olmasını gerektiriyor —
+-- supabase-teacher-descriptions.sql (33-35 fixture'ı) ve supabase-teacher-
+-- contract.sql (36-38 fixture'ı). Biri eksikse dosya o fixture'ın
+-- INSERT'inde durur (42P01) ve hiçbir test sonucu yazılmaz.
+--
+-- SQL EDITOR'ÜN "RLS YOK" UYARISI BEKLENEN DURUM: editör, RLS açılmadan
+-- oluşturulan her tabloyu işaretliyor ve TEMP tabloyu ayırt etmiyor.
+-- Buradaki sonuc/k/b/d geçici tablolar: yalnızca bu oturumun pg_temp
+-- şemasında duruyorlar, API'ye açık değiller ve ROLLBACK ile siliniyorlar.
+-- "Run this query" ile devam edin. sonuc'a RLS AÇMAYIN: authenticated'a
+-- geçildikten sonra sonuç yazabilmek için ona INSERT izni verildi, politikasız
+-- bir RLS bu yazmaları engeller ve test hiçbir sonuç kaydedemez.
+--
 -- ---------------------------------------------------------------------------
 -- NEDEN BURADA, ARAYÜZDE DEĞİL
 -- ---------------------------------------------------------------------------
@@ -78,6 +97,23 @@ INSERT INTO public.profiles (id, full_name, phone, user_type) VALUES
 INSERT INTO public.teacher_descriptions (teacher_id, description)
 VALUES ((SELECT id FROM k WHERE ad='ogretmenA'), 'TYT Matematik');
 
+-- 36-38 icin: her turden birer belge (supabase-teacher-contract.sql
+-- uygulanmis olmali, yoksa dosya burada durur). Test 37'deki INSERT'e izin
+-- verilseydi FK'leri VE belge turu tetikleyicisini gececek gercek kimlikler:
+-- rastgele kimlikle RED yetkiden degil FK (23503) ya da tur (23514)
+-- hatasindan gelir ve test SAHTE gecerdi. version 9999: gercek satirlarla
+-- (kind, version) cakismasin diye. Hicbir onay satiri bunlari gostermedigi
+-- icin degismezlik tetikleyicisine takilmaz; ROLLBACK ile gider.
+CREATE TEMP TABLE b (ad text PRIMARY KEY, id uuid);
+INSERT INTO b VALUES ('sozlesme',  'eeeeeeee-0000-0000-0000-000000000001'),
+                     ('aydinlatma','eeeeeeee-0000-0000-0000-000000000002'),
+                     ('kosullar',  'eeeeeeee-0000-0000-0000-000000000003');
+
+INSERT INTO public.teacher_legal_documents (id, kind, version, title, body) VALUES
+  ((SELECT id FROM b WHERE ad='sozlesme'),   'ogretmen_sozlesmesi', 9999, 'Test sozlesme',   'Test metni'),
+  ((SELECT id FROM b WHERE ad='aydinlatma'), 'kvkk_aydinlatma',     9999, 'Test aydinlatma', 'Test metni'),
+  ((SELECT id FROM b WHERE ad='kosullar'),   'hizmet_kosullari',    9999, 'Test kosullar',   'Test metni');
+
 CREATE TEMP TABLE d (ad text PRIMARY KEY, id uuid);
 INSERT INTO d VALUES ('A1','11111111-0000-0000-0000-000000000001'),
                      ('A2','11111111-0000-0000-0000-000000000002'),
@@ -104,6 +140,7 @@ DO $$
 DECLARE
   tA uuid; tB uuid; s1 uuid; s2 uuid;
   dA1 uuid; dA2 uuid; dB1 uuid; dIptal uuid;
+  bS uuid; bA uuid; bK uuid;
   n int;
 BEGIN
   SELECT id INTO tA  FROM k WHERE ad='ogretmenA';
@@ -114,6 +151,9 @@ BEGIN
   SELECT id INTO dA2 FROM d WHERE ad='A2';
   SELECT id INTO dB1 FROM d WHERE ad='B1';
   SELECT id INTO dIptal FROM d WHERE ad='AIPTAL';
+  SELECT id INTO bS FROM b WHERE ad='sozlesme';
+  SELECT id INTO bA FROM b WHERE ad='aydinlatma';
+  SELECT id INTO bK FROM b WHERE ad='kosullar';
 
   -- ======================================================== ÖĞRETMEN A GİBİ
   PERFORM set_config('role','authenticated',true);
@@ -380,6 +420,48 @@ BEGIN
     INSERT INTO sonuc VALUES (35,'Ogrenci ogretmen aciklamalarini okuma','RED', n||' satir okudu', false);
   EXCEPTION WHEN others THEN
     INSERT INTO sonuc VALUES (35,'Ogrenci ogretmen aciklamalarini okuma','RED','RED '||sqlstate, true);
+  END;
+
+  -- ========================================== ÖĞRETMEN SÖZLEŞMESİ (36-38)
+  -- supabase-teacher-contract.sql: belgeler, onay kaydı ve durum RPC'si
+  -- authenticated'a HİÇ açık değil; onay kaydını yalnızca servis rolü
+  -- (sunucu) yazar. Öğretmen kendi onayını kendi jetonuyla yazabilseydi
+  -- IP'yi, zamanı ve sürümü sahteleyebilirdi. 33-35'ten farkı: burada
+  -- yalnızca 42501 (insufficient_privilege) geçiyor; başka her hata KALDI.
+  PERFORM set_config('request.jwt.claims', json_build_object('sub',tA,'role','authenticated')::text, true);
+  BEGIN
+    SELECT count(*) INTO n FROM public.teacher_legal_documents;
+    INSERT INTO sonuc VALUES (36,'OgretmenA sozlesme belgelerini okuma','RED 42501', n||' satir okudu', false);
+  EXCEPTION
+    WHEN insufficient_privilege THEN
+      INSERT INTO sonuc VALUES (36,'OgretmenA sozlesme belgelerini okuma','RED 42501','RED '||sqlstate, true);
+    WHEN others THEN
+      INSERT INTO sonuc VALUES (36,'OgretmenA sozlesme belgelerini okuma','RED 42501','RED '||sqlstate, false);
+  END;
+
+  -- Fixture belgeleriyle: izin verilseydi bu INSERT FK'leri ve belge turu
+  -- tetikleyicisini gecerdi (bkz. DO blogundan onceki fixture notu).
+  BEGIN
+    INSERT INTO public.teacher_contract_acceptances
+      (teacher_id, sozlesme_id, aydinlatma_id, kosullar_id,
+       aydinlatma_okundu, kosullar_kabul, ip, user_agent)
+    VALUES (tA, bS, bA, bK, true, true, '203.0.113.7', 'sahte tarayici');
+    INSERT INTO sonuc VALUES (37,'OgretmenA kendi onay kaydini yazma','RED 42501','YAZDI!', false);
+  EXCEPTION
+    WHEN insufficient_privilege THEN
+      INSERT INTO sonuc VALUES (37,'OgretmenA kendi onay kaydini yazma','RED 42501','RED '||sqlstate, true);
+    WHEN others THEN
+      INSERT INTO sonuc VALUES (37,'OgretmenA kendi onay kaydini yazma','RED 42501','RED '||sqlstate, false);
+  END;
+
+  BEGIN
+    PERFORM public.teacher_contract_status(tA);
+    INSERT INTO sonuc VALUES (38,'OgretmenA sozlesme durumunu RPC ile sorgulama','RED 42501','CAGIRDI!', false);
+  EXCEPTION
+    WHEN insufficient_privilege THEN
+      INSERT INTO sonuc VALUES (38,'OgretmenA sozlesme durumunu RPC ile sorgulama','RED 42501','RED '||sqlstate, true);
+    WHEN others THEN
+      INSERT INTO sonuc VALUES (38,'OgretmenA sozlesme durumunu RPC ile sorgulama','RED 42501','RED '||sqlstate, false);
   END;
 
   PERFORM set_config('role','postgres',true);
