@@ -37,11 +37,21 @@ import type { Aralik } from '../../../lib/dersSaati';
  * altında görünüyor. Yalnızca yöneticiler görür — bu bir arayüz gizlemesi
  * değil, tablo öğretmene veritabanında kapalı (supabase-teacher-descriptions.sql).
  *
+ * LİSTE FİLTRESİ (2026-10-18): rol kutuları (birden fazla seçilebilir) ve
+ * "yalnızca sözleşmesi onaylı öğretmenler". Filtre istemcide: liste zaten
+ * /api/admin/ozet'ten tamamı geliyor, ayrı bir sunucu sorgusuna gerek yok.
+ * Sözleşme kutusu yalnızca öğretmen satırlarını daraltıyor; öğrenci ve
+ * yönetici satırlarına dokunmuyor. Sözleşme yayımlanmamışsa (sozlesme null)
+ * hiçbir öğretmen "onaylı" sayılmıyor — bilinmeyeni onaylı göstermek yanlış
+ * olurdu.
+ *
  * HESAP SİLME YOK ve bu bilinçli: bir auth kullanıcısını silmek ders
  * geçmişini de etkileyen, geri dönüşü olmayan bir iş. Yanlış satıra basmanın
  * bedeli, panelde kazanılan rahatlıktan büyük. Erişimi kesmek gerekirse
  * Supabase Dashboard'dan yapılır.
  */
+
+const ROLLER: Hesap['userType'][] = ['student', 'teacher', 'admin'];
 
 const BOS_FORM = {
   fullName: '',
@@ -76,6 +86,28 @@ export const AdminAccounts: React.FC<{
   /* Açıklaması düzenlenen öğretmen. Metin listeden geliyor, ayrı okuma yok. */
   const [aciklamaAcik, setAciklamaAcik] = useState<string | null>(null);
   const [aciklamaTaslak, setAciklamaTaslak] = useState('');
+
+  /* Liste filtresi. Başlangıçta her rol seçili: sekme açıldığında hiçbir
+     hesap gizli olmamalı. */
+  const [gorunenRoller, setGorunenRoller] = useState<Set<Hesap['userType']>>(
+    () => new Set(ROLLER),
+  );
+  const [sadeceOnayli, setSadeceOnayli] = useState(false);
+
+  function rolDegistir(rol: Hesap['userType'], secili: boolean) {
+    setGorunenRoller((onceki) => {
+      const yeni = new Set(onceki);
+      if (secili) yeni.add(rol);
+      else yeni.delete(rol);
+      return yeni;
+    });
+  }
+
+  const filtrelenmis = hesaplar.filter(
+    (h) =>
+      gorunenRoller.has(h.userType) &&
+      !(sadeceOnayli && h.userType === 'teacher' && !h.sozlesme?.onaylandi),
+  );
 
   const ogretmenEksik = form.userType === 'teacher' && form.availability.length === 0;
 
@@ -330,15 +362,54 @@ export const AdminAccounts: React.FC<{
       <Kutu
         baslik="Hesaplar"
         ikon={<Users className="h-5 w-5" />}
-        sag={<span className="text-xs text-slate-400">{hesaplar.length} kayıt</span>}
+        sag={
+          <span className="text-xs text-slate-400">
+            {filtrelenmis.length === hesaplar.length
+              ? `${hesaplar.length} kayıt`
+              : `${filtrelenmis.length} / ${hesaplar.length} kayıt`}
+          </span>
+        }
       >
+        <div className="mb-4 flex flex-wrap items-center gap-x-5 gap-y-2 rounded-2xl border border-slate-200 p-3">
+          <span className="text-xs font-bold uppercase tracking-wider text-slate-500">Göster</span>
+          {ROLLER.map((rol) => (
+            <label key={rol} className="flex cursor-pointer items-center gap-2 text-sm text-slate-700">
+              <input
+                type="checkbox"
+                checked={gorunenRoller.has(rol)}
+                onChange={(e) => rolDegistir(rol, e.target.checked)}
+                className="h-4 w-4 shrink-0 accent-[#191F61]"
+              />
+              {ROL_ETIKET[rol]}
+            </label>
+          ))}
+          {/* Öğretmen kutusu kapalıyken bu kutunun etkisi yok; devre dışı
+              bırakmak, işaretli görünüp hiçbir şey yapmamasından daha açık. */}
+          <label
+            className={`flex items-center gap-2 text-sm sm:ml-auto ${
+              gorunenRoller.has('teacher') ? 'cursor-pointer text-slate-700' : 'text-slate-400'
+            }`}
+          >
+            <input
+              type="checkbox"
+              checked={sadeceOnayli}
+              onChange={(e) => setSadeceOnayli(e.target.checked)}
+              disabled={!gorunenRoller.has('teacher')}
+              className="h-4 w-4 shrink-0 accent-[#191F61]"
+            />
+            Yalnızca sözleşmesi onaylı öğretmenler
+          </label>
+        </div>
+
         {yukleniyor ? (
           <p className="py-8 text-center text-sm text-slate-500">Yükleniyor...</p>
         ) : hesaplar.length === 0 ? (
           <Bos>Henüz hesap yok.</Bos>
+        ) : filtrelenmis.length === 0 ? (
+          <Bos>Seçili filtrelere uyan hesap yok.</Bos>
         ) : (
           <ul className="space-y-2">
-            {hesaplar.map((h) => (
+            {filtrelenmis.map((h) => (
               <li key={h.id} className="rounded-2xl border border-slate-200 p-3">
                 <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
                   <span className="text-sm font-bold text-[#191F61]">{h.fullName}</span>
