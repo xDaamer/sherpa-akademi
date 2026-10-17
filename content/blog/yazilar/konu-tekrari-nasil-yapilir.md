@@ -4,7 +4,7 @@ excerpt: "Unutmayı yavaşlatan tekrar düzeni: hangi aralıklarla, hangi yönte
 tldr: "Tekrar, konuyu yeniden okumak değil kapalı kitap hatırlamaya çalışmaktır. İşe yarayan aralık artan biçimdedir: aynı gün, iki gün sonra, bir hafta sonra, üç hafta sonra. Tekrar programa yazılmazsa yapılmıyor."
 type: nasil
 category: ders-calisma-teknikleri
-author: akademitu-egitim-ekibi
+author: sherpa-akademi-egitim-ekibi
 tags: [konu-tekrari, araliklik-tekrar, calisma-yontemi]
 status: published
 publishedAt: 2026-09-14

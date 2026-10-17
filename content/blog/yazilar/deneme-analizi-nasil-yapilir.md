@@ -4,7 +4,7 @@ excerpt: "Bir denemeyi çözdükten sonra yapılacak analiz: yanlışların sebe
 tldr: "Her yanlışı üç sebepten birine ayır: bilgi eksiği, dikkat hatası, süre. Sadece bilgi eksiği olanlar konu tekrarına girer; dikkat hataları için ayrı bir kontrol listesi tutulur. Toplam nete değil test bazlı değişime bakılır."
 type: nasil
 category: ders-calisma-teknikleri
-author: akademitu-egitim-ekibi
+author: sherpa-akademi-egitim-ekibi
 tags: [deneme-analizi, calisma-yontemi, yanlis-defteri]
 status: published
 publishedAt: 2026-09-14

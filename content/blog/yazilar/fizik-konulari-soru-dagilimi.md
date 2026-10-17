@@ -4,7 +4,7 @@ excerpt: "TYT'de 7, AYT'de 14 fizik sorusunun konulara dağılımı, ÖSYM ortal
 tldr: "Fizik TYT'de 7, AYT'de 14 soru getiriyor; toplam 21 soru. AYT fizik ortalaması 14 soruda 2,7 doğru, yani sınavın en düşük ortalamalı testlerinden biri. Soru sayısı az olduğu için konu seçimi, konuların tamamını bitirmekten daha belirleyici."
 type: veri
 category: yks
-author: akademitu-egitim-ekibi
+author: sherpa-akademi-egitim-ekibi
 tags: [fizik, konu-dagilimi, tyt, ayt]
 status: published
 publishedAt: 2026-09-16

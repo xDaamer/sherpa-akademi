@@ -4,7 +4,7 @@ excerpt: "Son sınıfta okul ile YKS hazırlığını birlikte yürütmenin yolu
 tldr: "Eylülden haziran ortasına yaklaşık 33 verimli hafta var. İlk üç ay TYT ağırlıklı temel kapatmaya, kış aylarımız AYT konularına, son üç ay deneme ve eksik kapatmaya ayrılır. Okul derslerini hazırlığın dışında saymak, haftada on saat kaybettiriyor."
 type: nasil
 category: yks
-author: akademitu-egitim-ekibi
+author: sherpa-akademi-egitim-ekibi
 tags: [yks, 12-sinif, calisma-programi, tyt, ayt]
 status: published
 publishedAt: 2026-09-15

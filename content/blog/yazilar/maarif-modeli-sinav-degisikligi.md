@@ -4,18 +4,19 @@ excerpt: "Türkiye Yüzyılı Maarif Modeli sınavları ne zaman etkileyecek, 20
 tldr: "İlk Maarif Modeli uyumlu LGS ve YKS haziran 2028'de yapılacak. 2027 sınavlarına girecek 8 ve 12. sınıflar eski öğretim programında kaldığı için onlar açısından değişen bir şey yok. 2028'de de sınav yapısı değil soru tipi değişiyor."
 type: guncel
 category: sinav-takvimi-duyurular
-author: akademitu-egitim-ekibi
+author: sherpa-akademi-egitim-ekibi
 tags: [maarif-modeli, mufredat, lgs, yks]
 status: published
 publishedAt: 2026-09-15
-lastReviewedAt: 2026-09-15
+contentUpdatedAt: 2026-10-17
+lastReviewedAt: 2026-10-17
 cover:
 coverAlt:
 seoTitle: "Maarif Modeli Sınav Değişikliği Ne Zaman?"
 seoDescription: "Maarif Modeli sınav değişikliği ne zaman başlıyor? 2027 LGS ve YKS'ye girecekler için ne değişiyor, 2028'de soru tipleri nasıl farklılaşacak?"
 focusKeyword: "maarif modeli sınav değişikliği"
 pillarOf: lgs-hazirlik-rehberi
-related: [beceri-temelli-sorular, egitim-ogretim-yili-takvimi]
+related: [maarif-modeli-nedir, 7-sinif-lgs-hazirlik, maarif-modeli-lgs-matematik-fen, beceri-temelli-sorular]
 faq:
   - q: "Maarif Modeli LGS'yi ne zaman etkileyecek?"
     a: "İlk Maarif Modeli uyumlu LGS haziran 2028'de yapılacak. 2027 LGS'ye girecek 8. sınıflar önceki öğretim programında olduğu için bu sınav eski düzende hazırlanıyor."
@@ -57,7 +58,7 @@ listesi, soru sayıları ve oturum düzeni aynı kalıyor.
 Millî Eğitim Bakanlığının duyurusuna göre yeni müfredatla eğitim gören
 öğrenciler ilk kez **haziran 2028'de** LGS ve YKS'ye girecek.
 
-Yani bugün 6. sınıfta olan bir öğrenci 2028 LGS'ye, bugün 10. sınıfta olan bir
+Yani bugün 7. sınıfta olan bir öğrenci 2028 LGS'ye, bugün 11. sınıfta olan bir
 öğrenci de 2028 YKS'ye yeni soru modeliyle girecek. Bu iki grup için hazırlığın
 şeklini şimdiden düşünmek anlamlı.
 
@@ -92,8 +93,9 @@ anlatılıyor.
 ## Pilot uygulamalar ne gösterdi?
 
 Bakanlık yeni soru modelini doğrudan sınava koymadan önce pilot uygulamalar
-yaptı. Kasım ve aralık 2025'te iki ayrı hafta boyunca örnek uygulamalar
-yürütüldü.
+yaptı. Uygulama 24 Kasım - 5 Aralık 2025 arasında 12 ilde, 4.361 altıncı sınıf ve
+10.195 onuncu sınıf öğrencisiyle iki haftalık uygulama yürütüldü. Sonuçlar
+Temmuz 2026'da 233 sayfalık bir araştırma raporuyla yayımlandı.
 
 Bu tür pilotların amacı soruların ölçme gücünü sınamak. Bir soru tipi kâğıt
 üzerinde iyi görünse de, sahada beklenenden farklı sonuç verebiliyor.
@@ -108,7 +110,7 @@ göre kurulabilecek.
 
 ## 2028'e girecek öğrenciler ne yapmalı?
 
-Bugün 6. sınıfta olan öğrenci 2028 LGS'ye, 10. sınıfta olan öğrenci 2028
+Bugün 7. sınıfta olan öğrenci 2028 LGS'ye, 11. sınıfta olan öğrenci 2028
 YKS'ye yeni soru modeliyle girecek. Bu iki grup için hazırlığın şekli şimdiden
 farklılaşabilir.
 

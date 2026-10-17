@@ -1,4 +1,5 @@
 ---
+kind: ekip
 fullName: "Sherpa Akademi Eğitim Ekibi"
 jobTitle: "YKS ve LGS Hazırlık Kadrosu"
 credentials: "Sherpa Akademi, YKS ve LGS hazırlığında birebir online özel ders ve koçluk veren bir eğitim ekibidir. Bu içerikler ekibin ders deneyimine dayanır; sınav formatı ve takvim bilgileri ÖSYM ile MEB'in yayımladığı kılavuzlara dayandırılır."

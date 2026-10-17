@@ -12,13 +12,8 @@ import { HomePage } from './pages/HomePage';
 import { PrivacyPolicyPage } from './pages/PrivacyPolicyPage';
 import { TermsPage } from './pages/TermsPage';
 import { NotFoundPage } from './pages/NotFoundPage';
-import { PortalLoginPage } from './pages/PortalLoginPage';
-import { TeacherDashboardPage } from './pages/TeacherDashboardPage';
-import { StudentCommentsPage } from './pages/StudentCommentsPage';
-import { AdminPanelPage } from './pages/AdminPanelPage';
 import { RequireAuth } from './components/portal/RequireAuth';
 import { RequireRole } from './components/portal/RequireRole';
-import { PanelDispatch } from './components/portal/PanelDispatch';
 import { CrossHostRedirect } from './components/CrossHostRedirect';
 import { routingMode, panelHref, teacherPanelHref, adminPanelHref, loginHref } from './lib/host';
 import { Button } from './components/ui/Button';
@@ -34,6 +29,30 @@ import { Button } from './components/ui/Button';
  */
 const PopUpForm = lazy(() =>
   import('./components/PopUpForm').then((m) => ({ default: m.PopUpForm }))
+);
+
+/*
+ * PANEL SAYFALARI AYRI PARÇALARDA.
+ * Pazarlama sayfasına gelen ziyaretçi giriş, öğrenci/öğretmen/yönetim paneli
+ * kodunu hiç kullanmıyor ama tek bundle'da hepsini indiriyordu (2026-10-18
+ * ölçümü: index-*.js 544 kB). Her panel yalnızca o route açılınca iniyor.
+ * Prerender bunlardan hiçbirini render etmiyor (yalnızca /, yasal sayfalar ve
+ * 404), dolayısıyla sunucu tarafında Suspense'e düşen bir şey yok.
+ */
+const PortalLoginPage = lazy(() =>
+  import('./pages/PortalLoginPage').then((m) => ({ default: m.PortalLoginPage }))
+);
+const TeacherDashboardPage = lazy(() =>
+  import('./pages/TeacherDashboardPage').then((m) => ({ default: m.TeacherDashboardPage }))
+);
+const StudentCommentsPage = lazy(() =>
+  import('./pages/StudentCommentsPage').then((m) => ({ default: m.StudentCommentsPage }))
+);
+const AdminPanelPage = lazy(() =>
+  import('./pages/AdminPanelPage').then((m) => ({ default: m.AdminPanelPage }))
+);
+const PanelDispatch = lazy(() =>
+  import('./components/portal/PanelDispatch').then((m) => ({ default: m.PanelDispatch }))
 );
 
 /*
@@ -83,11 +102,10 @@ const organizationSchema = {
     "areaServed": "TR",
     "availableLanguage": ["Turkish"]
   },
-  "sameAs": [
-    need.social.instagram,
-    need.social.youtube,
-    need.social.twitter
-  ]
+  // Yalnızca gerçekten var olan hesaplar. 2026-10-18'e kadar burada açılmamış
+  // YouTube/X hesapları duruyordu (YouTube adresi 404 veriyordu); var olmayan
+  // bir profili sameAs ile işaret etmek kuruluş kimliğini bulanıklaştırır.
+  "sameAs": Object.values(need.social)
 };
 
 /*
@@ -271,6 +289,7 @@ export default function App() {
         tanımlı — oradaki 308'ler JS hiç çalışmadan devreye girer, buradakiler
         ise yerel/önizleme ortamları ve uygulama içi gezinme için.
       */}
+      <Suspense fallback={<div className="flex-grow" />}>
       {isPortalHost ? (
         <Routes>
           {/*
@@ -444,6 +463,7 @@ export default function App() {
           <Route path="*" element={<NotFoundPage />} />
         </Routes>
       )}
+      </Suspense>
 
       {/* 3. FOOTER BÖLÜMÜ */}
       {!isPortal && <Footer onOpenTrialForm={handleOpenTrialForm} />}

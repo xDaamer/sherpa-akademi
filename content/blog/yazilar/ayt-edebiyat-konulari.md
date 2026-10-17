@@ -4,7 +4,7 @@ excerpt: "AYT'de 24 edebiyat sorusunun konulara dağılımı, dönemlerin ağır
 tldr: "AYT edebiyat 24 soru getiriyor ve bu, tek bir dersten gelen en yüksek soru sayısı. Ortalama 24 soruda 6,1 doğru. Soruların yaklaşık üçte biri edebiyat tarihi ve dönem bilgisi, üçte biri şiir bilgisi, kalanı metin ve anlam soruları."
 type: veri
 category: yks
-author: akademitu-egitim-ekibi
+author: sherpa-akademi-egitim-ekibi
 tags: [ayt, edebiyat, konu-dagilimi, siir]
 status: published
 publishedAt: 2026-09-16

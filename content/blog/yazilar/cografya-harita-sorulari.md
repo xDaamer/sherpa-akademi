@@ -4,7 +4,7 @@ excerpt: "Harita sorularında izlenecek adımlar, izohips ve profil soruları, k
 tldr: "Harita sorularında çözüm, haritayı ezberlemekten değil kuralları bilmekten geçiyor. İzohips sorularında aralık ve sıklık eğimi verir; koordinat sorularında enlem-boylam farkı doğrudan hesaba döner. Boş harita doldurma ise mekân bilgisini kalıcı kılan tek pratik."
 type: nasil
 category: yks
-author: akademitu-egitim-ekibi
+author: sherpa-akademi-egitim-ekibi
 tags: [cografya, harita, calisma-yontemi, tyt]
 status: published
 publishedAt: 2026-09-16

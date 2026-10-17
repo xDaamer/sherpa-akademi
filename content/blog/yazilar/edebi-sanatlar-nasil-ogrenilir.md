@@ -4,7 +4,7 @@ excerpt: "Edebi sanatların tanımla değil örnekle öğrenilmesi, en çok kar�
 tldr: "Edebi sanatlar tanım ezberleyerek öğrenilmiyor; her sanat için iki üç örnek dize aklında kalmalı. Sınavda karşılaşılan dize, aklınızdaki örneğe benzetilerek tanınıyor. En çok karışan çiftler teşbih-istiare ve mecaz-kinaye."
 type: nasil
 category: yks
-author: akademitu-egitim-ekibi
+author: sherpa-akademi-egitim-ekibi
 tags: [edebiyat, edebi-sanatlar, ayt, calisma-yontemi]
 status: published
 publishedAt: 2026-09-16

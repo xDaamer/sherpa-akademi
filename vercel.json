@@ -19,6 +19,7 @@
     { "source": "/portal/:path*", "has": [{ "type": "host", "value": "^portal\\.akademitu\\.com$" }], "destination": "/", "permanent": true },
 
     { "source": "/portal", "has": [{ "type": "host", "value": "^(www\\.)?sherpakademi\\.com$" }], "destination": "/login", "permanent": true },
+    { "source": "/blog/yazar/akademitu-egitim-ekibi", "destination": "/blog/yazar/sherpa-akademi-egitim-ekibi", "permanent": true },
     { "source": "/portal/kayit", "has": [{ "type": "host", "value": "^(www\\.)?sherpakademi\\.com$" }], "destination": "/login", "permanent": true },
     { "source": "/portal/panel", "has": [{ "type": "host", "value": "^(www\\.)?sherpakademi\\.com$" }], "destination": "https://portal.sherpakademi.com/", "permanent": true },
     { "source": "/panel", "has": [{ "type": "host", "value": "^(www\\.)?sherpakademi\\.com$" }], "destination": "https://portal.sherpakademi.com/", "permanent": true },
@@ -29,6 +30,10 @@
     { "source": "/portal/:path*", "has": [{ "type": "host", "value": "^portal\\.sherpakademi\\.com$" }], "destination": "/", "permanent": true }
   ],
   "headers": [
+    {
+      "source": "/assets/(.*)",
+      "headers": [{ "key": "Cache-Control", "value": "public, max-age=31536000, immutable" }]
+    },
     {
       "source": "/(.*)",
       "headers": [
@@ -65,8 +70,6 @@
     { "source": "/panel", "destination": "/app.html" },
     { "source": "/panel/:path*", "destination": "/app.html" },
     { "source": "/portal", "destination": "/app.html" },
-    { "source": "/portal/:path*", "destination": "/app.html" },
-
-    { "source": "/((?!api/).*)", "destination": "/404.html" }
+    { "source": "/portal/:path*", "destination": "/app.html" }
   ]
 }

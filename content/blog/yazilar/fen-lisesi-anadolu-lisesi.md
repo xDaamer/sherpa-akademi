@@ -4,7 +4,7 @@ excerpt: "Fen lisesi ile Anadolu lisesi arasındaki gerçek farklar: ders yükü
 tldr: "Fen lisesi sayısal ağırlıklı ve tempolu bir program sunuyor; sayısal alanda net kararı vermiş öğrenciler için avantajlı. Alan kararı henüz netleşmemiş ya da sözel tarafa yakın bir öğrenci için iyi bir Anadolu lisesi daha esnek. Okul türü sonucu tek başına belirlemiyor; çalışma düzeni belirliyor."
 type: karar
 category: lgs
-author: akademitu-egitim-ekibi
+author: sherpa-akademi-egitim-ekibi
 tags: [lgs, lise-tercihi, fen-lisesi, anadolu-lisesi, veli]
 status: published
 publishedAt: 2026-09-15

@@ -4,7 +4,7 @@ excerpt: "TYT'nin en ağırlıklı konusu olan paragrafta süre kazandıran okum
 tldr: "Paragrafta süre kaybının çoğu metni iki kez okumaktan geliyor. Önce soru kökü okunur, sonra metne dönülür. Doğru şık metinde açıkça desteklenen şıktır; çeldiriciler ise aşırı genelleme, metin dışı bilgi ve olmayan karşılaştırma kalıplarından gelir."
 type: nasil
 category: yks
-author: akademitu-egitim-ekibi
+author: sherpa-akademi-egitim-ekibi
 tags: [tyt, turkce, paragraf, calisma-yontemi]
 status: published
 publishedAt: 2026-09-16

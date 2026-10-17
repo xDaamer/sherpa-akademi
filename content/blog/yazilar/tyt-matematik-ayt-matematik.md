@@ -4,7 +4,7 @@ excerpt: "TYT ve AYT matematiğin farkları, hangisinin puana daha çok etki ett
 tldr: "Kısa cevap: önce TYT. TYT matematik konuları okulda yeniden işlenmiyor ve AYT'nin de altyapısı; AYT konularının önemli kısmı ise 12. sınıfta okulda zaten işleniyor. TYT'de 20 net eşiği geçilmeden AYT ağırlığını yüzde 60'ın üzerine çıkarmak verimli olmuyor."
 type: karar
 category: yks
-author: akademitu-egitim-ekibi
+author: sherpa-akademi-egitim-ekibi
 tags: [tyt, ayt, matematik, calisma-programi]
 status: published
 publishedAt: 2026-09-16

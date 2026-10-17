@@ -4,7 +4,7 @@ excerpt: "Uygulanabilir bir haftalık çalışma programının nasıl kurulacağ
 tldr: "Önce gerçek kapasiteni ölç, sonra o sürenin yarısıyla plan yap. Dersleri soru sayısına göre dağıt, tekrarı yeni konu kadar sabit bir yere koy ve haftada bir boş gün bırak. Program çöküyorsa sebep disiplin değil, planın baştan gerçekçi olmamasıdır."
 type: nasil
 category: ders-calisma-teknikleri
-author: akademitu-egitim-ekibi
+author: sherpa-akademi-egitim-ekibi
 tags: [calisma-programi, planlama, calisma-yontemi]
 status: published
 publishedAt: 2026-09-14

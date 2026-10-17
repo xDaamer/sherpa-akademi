@@ -4,7 +4,7 @@ excerpt: "Sınav kaygısının nereden geldiği, ne zaman normal ne zaman sorun 
 tldr: "Bir miktar kaygı performansı artırır; sorun kaygının düşünmeyi engellediği noktada başlar. En çok işe yarayan üç şey: hazırlığı somut hâle getirmek, denemeyi sınav koşullarında çözerek belirsizliği azaltmak ve nefes düzenini çalışmak."
 type: nasil
 category: kocluk-motivasyon
-author: akademitu-egitim-ekibi
+author: sherpa-akademi-egitim-ekibi
 tags: [sinav-kaygisi, motivasyon, kocluk]
 status: published
 publishedAt: 2026-09-14

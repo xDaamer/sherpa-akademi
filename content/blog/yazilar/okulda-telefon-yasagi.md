@@ -4,7 +4,7 @@ excerpt: "MEB'in sınıfta telefon uygulaması ne getiriyor, evde bu düzen nas�
 tldr: "Okul günün altı saatini düzenliyor; kalan on saat evde geçiyor. Evde işe yarayan yöntem süreyi kısmak değil, telefonun yerini değiştirmek: ders çalışılan odada bulunmaması, çoğu ailede süre kısıtlamasından daha az tartışma üretiyor ve daha çok işe yarıyor."
 type: veli
 category: veli-rehberi
-author: akademitu-egitim-ekibi
+author: sherpa-akademi-egitim-ekibi
 tags: [veli, ekran-suresi, odaklanma, motivasyon]
 status: published
 publishedAt: 2026-09-15

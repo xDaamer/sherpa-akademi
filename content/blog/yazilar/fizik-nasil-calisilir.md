@@ -4,7 +4,7 @@ excerpt: "Fizikte net yükseltmenin yolu: kavram önce mi formül önce mi, soru
 tldr: "Fizikte tıkanmanın sebebi genelde formül eksiği değil, durumun kurulamaması. İşe yarayan sıra şu: önce olayı çiz, sonra verilenleri işaretle, sonra formülü seç. Formülle başlayan bir çözüm, yanlış formülü doğru uygulamakla sonuçlanıyor."
 type: nasil
 category: yks
-author: akademitu-egitim-ekibi
+author: sherpa-akademi-egitim-ekibi
 tags: [fizik, calisma-yontemi, yks, tyt]
 status: published
 publishedAt: 2026-09-16

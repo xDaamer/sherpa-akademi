@@ -4,7 +4,7 @@ excerpt: "Filozofları tek tek ezberlemek yerine tartışma grupları hâlinde �
 tldr: "Filozofları tek tek ezberlemek yerine akımlara göre gruplamak gerekiyor. Her felsefi soru için üç dört akım, her akım için iki üç temsilci; toplam liste kırk elli kalemde kalıyor. Sınavda önce görüşün hangi akıma ait olduğu bulunuyor, isim ondan sonra geliyor."
 type: nasil
 category: yks
-author: akademitu-egitim-ekibi
+author: sherpa-akademi-egitim-ekibi
 tags: [felsefe, ezber, calisma-yontemi, ayt]
 status: published
 publishedAt: 2026-09-16

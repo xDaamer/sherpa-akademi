@@ -4,7 +4,7 @@ excerpt: "Biyolojideki ezber yükünü azaltan yöntemler: aralıklı tekrar tak
 tldr: "Biyolojideki ezber yükünün önemli kısmı ezber değil, ilişki. Organel işlevleri yapısıyla, hormonlar etkiledikleri sistemle birlikte öğrenildiğinde liste kısalıyor. Gerçekten ezber isteyen kısım için tek işe yarayan yöntem artan aralıklı kapalı kitap tekrar."
 type: nasil
 category: yks
-author: akademitu-egitim-ekibi
+author: sherpa-akademi-egitim-ekibi
 tags: [biyoloji, ezber, calisma-yontemi, tekrar]
 status: published
 publishedAt: 2026-09-16

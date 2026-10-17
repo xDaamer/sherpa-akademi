@@ -4,7 +4,7 @@ excerpt: "Okulun açılmasıyla LGS arasındaki ilk dönem nasıl kullanılır: 
 tldr: "LGS'nin tamamı 8. sınıf müfredatından sorulduğu için ilk dönemin en verimli yöntemi okulda işlenen konuyu aynı hafta soru çözerek kapatmak. İlk dönemde deneme sayısı az tutulur, ayda bir yeterli. Asıl yatırım okuma hızı ve İngilizce kelimeye yapılır."
 type: nasil
 category: lgs
-author: akademitu-egitim-ekibi
+author: sherpa-akademi-egitim-ekibi
 tags: [lgs, 8-sinif, calisma-programi, yeni-nesil-sorular]
 status: published
 publishedAt: 2026-09-15

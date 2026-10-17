@@ -4,7 +4,7 @@ excerpt: "Sınav döneminde velinin rolü: destek ile baskı arasındaki sınır
 tldr: "En çok işe yarayan değişiklik, performans konuşmayı bırakıp süreç konuşmaya geçmektir. 'Kaç net yaptın' yerine 'bugün nasıl geçti' sorusu hem daha az baskı üretir hem daha çok bilgi verir. Karşılaştırma ise motivasyon üretmez."
 type: veli
 category: veli-rehberi
-author: akademitu-egitim-ekibi
+author: sherpa-akademi-egitim-ekibi
 tags: [veli, sinav-kaygisi, motivasyon]
 status: published
 publishedAt: 2026-09-14

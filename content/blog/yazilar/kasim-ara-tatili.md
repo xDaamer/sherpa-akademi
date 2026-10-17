@@ -4,7 +4,7 @@ excerpt: "16-20 Kasım 2026 ara tatilinde sınava hazırlanan bir öğrencinin n
 tldr: "Ara tatilin işi konu bitirmek değil, ilk üç ayın bilançosunu çıkarmak. En işe yarayan kullanım haftayı üçe bölmek: iki gün dinlenme, üç gün eksik kapatma. Tatili tam kapasite çalışmayla doldurmak, aralık ayının verimini düşürüyor."
 type: guncel
 category: sinav-takvimi-duyurular
-author: akademitu-egitim-ekibi
+author: sherpa-akademi-egitim-ekibi
 tags: [ara-tatil, sinav-takvimi, calisma-programi]
 status: published
 publishedAt: 2026-09-15

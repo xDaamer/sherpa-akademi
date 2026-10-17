@@ -4,7 +4,7 @@ excerpt: "MEB'in 2026 LGS Merkezî Sınav Raporundan çıkan sayılar: kaç öğ
 tldr: "2026 LGS'ye 994 bin 358 öğrenci girdi ve 452 öğrenci 500 tam puan aldı. Tam puan sayısı bir önceki yıl 719 idi; düşüş sınavın zorlaştığını değil, ayırt ediciliğin arttığını gösteriyor. Öğrencilerin yüzde 93,56'sı ilk yerleştirmede bir tercihine yerleşti."
 type: veri
 category: lgs
-author: akademitu-egitim-ekibi
+author: sherpa-akademi-egitim-ekibi
 tags: [lgs, meb-verileri, yerlestirme, 8-sinif]
 status: published
 publishedAt: 2026-09-15

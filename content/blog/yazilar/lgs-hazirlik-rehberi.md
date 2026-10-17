@@ -4,7 +4,7 @@ excerpt: "LGS'ye hazırlanan bir 8. sınıf öğrencisi için sınav formatı, y
 tldr: "LGS 90 sorudan oluşur ve iki bölümde yapılır: sözel 50, sayısal 40 soru. Sınavın ayırt edici yanı soru tipidir — bilgiyi değil, bilgiyi kullanmayı ölçer. Hazırlıkta belirleyici olan konu bitirmek değil, okuduğunu anlama ve çok adımlı soru çözme becerisidir."
 type: pillar
 category: lgs
-author: akademitu-egitim-ekibi
+author: sherpa-akademi-egitim-ekibi
 tags: [lgs, 8-sinif, yeni-nesil-sorular]
 status: published
 publishedAt: 2026-09-14
@@ -181,6 +181,14 @@ Bunun hazırlık açısından üç sonucu var:
 Kitap okumanın LGS'de doğrudan net getirdiğini söylemek abartı olmaz. Düzenli
 okuyan bir öğrenci uzun metinli soruyu daha hızlı ve daha doğru kavrıyor;
 kazandığı süre diğer sorulara gidiyor.
+
+Bu soru tipi Haziran 2028'den itibaren daha da belirginleşecek: yeni öğretim
+programıyla okuyan ilk grup o yıl LGS'ye giriyor. Programın ne getirdiği
+[Maarif Modeli nedir](/blog/maarif-modeli-nedir) yazısında. Matematik ve fende
+öne çıkan beceriler
+[Maarif Modeli LGS matematik ve fen](/blog/maarif-modeli-lgs-matematik-fen)
+yazısında. Bu yıl 7. sınıfta olanlar için plan ise
+[7. sınıf LGS hazırlık rehberinde](/blog/7-sinif-lgs-hazirlik).
 
 ## Nereden başlamalı? İlk iki hafta
 

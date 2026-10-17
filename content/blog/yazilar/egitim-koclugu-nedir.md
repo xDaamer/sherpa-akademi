@@ -4,7 +4,7 @@ excerpt: "Eğitim koçluğunun ne olduğu, ne yapmadığı, öğretmenlikten far
 tldr: "Eğitim koçu ders anlatmaz. Programı gerçekçi kurar, haftalık takibi yapar, tıkanan yeri tespit eder ve öğrencinin kendi kendine göremediği kalıpları söyler. Bilgi eksiği varsa çözüm özel ders, süreç dağınıksa çözüm koçluktur."
 type: pillar
 category: kocluk-motivasyon
-author: akademitu-egitim-ekibi
+author: sherpa-akademi-egitim-ekibi
 tags: [kocluk, motivasyon, veli, ozel-ders]
 status: published
 publishedAt: 2026-09-14

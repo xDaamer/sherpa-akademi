@@ -4,7 +4,7 @@ excerpt: "Özel ders ve kurs arasındaki gerçek farklar, iki tarafın da sını
 tldr: "Kısa cevap: eksikleri dağınık ve temel seviyede olan, grup temposunu takip edemeyen öğrenciler için özel ders daha verimli. Kendi başına düzen kurmakta zorlanan ve grup temposuna uyum sağlayabilen öğrenciler için kurs daha mantıklı."
 type: karar
 category: kocluk-motivasyon
-author: akademitu-egitim-ekibi
+author: sherpa-akademi-egitim-ekibi
 tags: [ozel-ders, kurs, kocluk, veli]
 status: published
 publishedAt: 2026-09-14

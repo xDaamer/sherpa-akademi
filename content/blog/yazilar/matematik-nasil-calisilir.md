@@ -4,7 +4,7 @@ excerpt: "Matematikte net yükseltmenin yolu: konu anlatımı ile soru çözüm�
 tldr: "Matematik izleyerek değil çözerek öğreniliyor. Her konu için anlatım süresinin en az iki katı soru çözülmeli ve her soru önce yardımsız denenmeli. İşlem hatası çoğu zaman dikkatsizlik değil, ara adımların yazılmamasından kaynaklanıyor."
 type: nasil
 category: yks
-author: akademitu-egitim-ekibi
+author: sherpa-akademi-egitim-ekibi
 tags: [matematik, calisma-yontemi, yks, tyt]
 status: published
 publishedAt: 2026-09-16

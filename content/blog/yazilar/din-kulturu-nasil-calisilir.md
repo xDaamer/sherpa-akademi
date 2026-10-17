@@ -4,7 +4,7 @@ excerpt: "Din kültüründe kavram tekrarının günlük tutulması, yorumların
 tldr: "Din kültürü, haftada bir saatle tamamı bitirilebilen tek ders. İşe yarayan düzen şu: haftada bir oturum yeni konu ve soru, her gün beş dakika kavram tekrarı. Karışan yorumlar gruplandığında ve dinler tabloya döküldüğünde kapsamın tamamı kapanıyor."
 type: nasil
 category: yks
-author: akademitu-egitim-ekibi
+author: sherpa-akademi-egitim-ekibi
 tags: [din-kulturu, calisma-yontemi, tyt, ayt]
 status: published
 publishedAt: 2026-09-16

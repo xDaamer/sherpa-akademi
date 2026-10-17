@@ -4,7 +4,7 @@ excerpt: "TYT'de 5, AYT'de 6 din kültürü sorusunun konulara dağılımı, kap
 tldr: "Din kültürü TYT'de 5, AYT'de 6 soru getiriyor; toplam 11 soru. Kapsamı sınavdaki tüm derslerin en darı ve soru tipleri istikrarlı. Bu ikisi birleşince birim süre başına en çok net getiren derslerden biri oluyor."
 type: veri
 category: yks
-author: akademitu-egitim-ekibi
+author: sherpa-akademi-egitim-ekibi
 tags: [din-kulturu, konu-dagilimi, tyt, ayt]
 status: published
 publishedAt: 2026-09-16

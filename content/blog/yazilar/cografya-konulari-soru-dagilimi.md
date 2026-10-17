@@ -4,7 +4,7 @@ excerpt: "TYT'de 5, AYT'de 17 coğrafya sorusunun konulara dağılımı, Coğraf
 tldr: "Coğrafya TYT'de 5, AYT'de 17 soru getiriyor; toplam 22 soru. AYT ikiye ayrılıyor: Coğrafya-1'de 6 soru fiziki ve beşeri coğrafyadan, Coğrafya-2'de 11 soru ülkeler, ekonomi ve çevre konularından geliyor."
 type: veri
 category: yks
-author: akademitu-egitim-ekibi
+author: sherpa-akademi-egitim-ekibi
 tags: [cografya, konu-dagilimi, tyt, ayt]
 status: published
 publishedAt: 2026-09-16

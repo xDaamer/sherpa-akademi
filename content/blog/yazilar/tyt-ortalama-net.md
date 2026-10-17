@@ -4,7 +4,7 @@ excerpt: "ÖSYM'nin 2026-YKS sayısal verilerine göre son sınıf öğrencileri
 tldr: "2026-TYT'de son sınıf öğrencilerinin ortalama doğru sayısı Türkçe'de 20,5, sosyal bilimlerde 10,2, temel matematikte 6,8 ve fen bilimlerinde 4,3 oldu. Matematik ve fen ortalamalarının bu kadar düşük olması, o iki testte yapılan her netin sıralamaya etkisini büyütüyor."
 type: veri
 category: yks
-author: akademitu-egitim-ekibi
+author: sherpa-akademi-egitim-ekibi
 tags: [tyt, yks, net-hesaplama, osym-verileri]
 status: published
 publishedAt: 2026-09-15

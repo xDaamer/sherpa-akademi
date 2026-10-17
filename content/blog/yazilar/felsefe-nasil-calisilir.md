@@ -4,7 +4,7 @@ excerpt: "Felsefe grubunun dört alt dersinin ayrı yöntemlerle çalışılmas�
 tldr: "Felsefe grubu tek ders gibi çalışılamıyor: mantık matematik gibi, psikoloji örnekle, sosyoloji karşılaştırmayla, felsefe ise soru-cevap ilişkisiyle öğreniliyor. Her filozofu bir soruya verilmiş cevap olarak görmek, ezber yükünü belirgin biçimde azaltıyor."
 type: nasil
 category: yks
-author: akademitu-egitim-ekibi
+author: sherpa-akademi-egitim-ekibi
 tags: [felsefe, mantik, psikoloji, sosyoloji, calisma-yontemi]
 status: published
 publishedAt: 2026-09-16

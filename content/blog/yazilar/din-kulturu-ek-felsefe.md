@@ -4,7 +4,7 @@ excerpt: "AYT Sosyal Bilimler-2'de din kültürü sorularının yerine ilave fel
 tldr: "Bu bir tercih meselesi değil, uygunluk meselesi. Din kültürü dersini yasal olarak almak zorunda olmayan adaylar, 6 din sorusunun yerine ilave felsefe grubu sorularını cevaplıyor. Seçim hakkı yalnızca bu durumdaki adaylarda; kılavuz esas alınmalı."
 type: karar
 category: yks
-author: akademitu-egitim-ekibi
+author: sherpa-akademi-egitim-ekibi
 tags: [din-kulturu, felsefe, ayt, sinav-takvimi]
 status: published
 publishedAt: 2026-09-16

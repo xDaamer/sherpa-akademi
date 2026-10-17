@@ -32,6 +32,13 @@ import { ARCHETYPES, ARCHETYPE_KEYS, checkEditorial } from "./editorial.js";
 
 export interface BlogAuthor {
   slug: string;
+  /**
+   * "kisi" (varsayılan) gerçek bir insan -> Person şeması. "ekip" bir kadro
+   * adına yazılan içerik -> Organization şeması. Bir ekibi Person olarak
+   * işaretlemek, var olmayan bir kişi beyan etmek demek (E-E-A-T açısından
+   * yanıltıcı); gerçek isimli yazarlar eklendikçe onlar "kisi" olur.
+   */
+  kind: "kisi" | "ekip";
   fullName: string;
   jobTitle: string;
   /** E-E-A-T: mezuniyet, deneyim yılı, sertifika. Person şemasına giriyor. */
@@ -129,7 +136,7 @@ const CATEGORY_KEYS = [
 ] as const;
 
 const AUTHOR_KEYS = [
-  "fullName", "jobTitle", "credentials", "avatar", "linkedin", "expertise",
+  "kind", "fullName", "jobTitle", "credentials", "avatar", "linkedin", "expertise",
 ] as const;
 
 /**
@@ -203,8 +210,14 @@ function loadAuthors(errors: Diagnostic[], warnings: Diagnostic[]): BlogAuthor[]
         diag.warn("`credentials` hâlâ şablon metni içeriyor — gerçek bilgiyle değiştirin.", "credentials");
       }
 
+      const kind = readText(parsed.data, "kind", diag) || "kisi";
+      if (kind !== "kisi" && kind !== "ekip") {
+        diag.error(`\`kind\` "kisi" ya da "ekip" olmalı: "${kind}".`, "kind");
+      }
+
       authors.push({
         slug,
+        kind: kind === "ekip" ? "ekip" : "kisi",
         fullName: readText(parsed.data, "fullName", diag, { required: true, max: 120 }),
         jobTitle: readText(parsed.data, "jobTitle", diag, { required: true, max: 160 }),
         credentials,

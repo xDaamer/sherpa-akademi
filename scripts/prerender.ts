@@ -56,7 +56,13 @@ import { SHOW_TEACHER_TICKER } from "../src/config.ts";
  *   1. /api/(.*)                      -> fonksiyon
  *   2. portal host'undaki her şey     -> /app.html   (boş kabuk)
  *   3. /login, /panel*, /portal*      -> /app.html
- *   4. geriye kalan her şey           -> /404.html   (statik noindex)
+ *   4. geriye kalan her şey           -> KURAL YOK. Vercel çıktı kökündeki
+ *                                        404.html'i kendisi, 404 koduyla sunar.
+ *
+ * 4. adımda 2026-10-18'e kadar `/((?!api/).*) -> /404.html` rewrite'ı vardı.
+ * Rewrite hedefi bir dosya olduğu için Vercel onu 200 ile döndürüyordu: var
+ * olmayan her adres (/llms.txt, /Blog, /manifest.json...) "soft 404"tü. Kural
+ * kalkınca aynı sayfa gerçek 404 koduyla geliyor. Geri eklemeyin.
  *
  * Eskiden tek bir kural vardı ve her şeyi /index.html'e yolluyordu. O zaman
  * zararsızdı çünkü index.html boş bir kabuktu; artık ana sayfanın tam içeriği,
@@ -163,14 +169,15 @@ const ROTALAR: Rota[] = [
   pazarlamaRotasi("terms", "kullanim-kosullari/index.html"),
 
   /*
-   * 404 — vercel.json'daki son rewrite buraya düşüyor.
+   * 404 — hiçbir dosyaya ve rewrite'a uymayan istekte Vercel bunu 404 koduyla
+   * sunuyor (vercel.json'da bilerek bir yakalayıcı rewrite yok).
    *
    * canonical YOK: 404 gerçek bir adrese karşılık gelmiyor, ona canonical
    * vermek ("bu sayfanın aslı şurası") ile noindex ("bunu dizine alma") çelişen
    * iki sinyal olurdu. Gerekçenin uzun hâli PageMeta.tsx'te.
    *
-   * Statik hosting'de durum kodu hâlâ 200 (mimarinin kabul edilmiş sınırı,
-   * bkz. faz-5), ama artık noindex sinyali JS ÇALIŞMADAN veriliyor.
+   * noindex yine de duruyor: bir yerden 200 ile servis edilirse (ör. önizleme
+   * ortamında farklı bir yönlendirme) sayfa yine dizine girmesin.
    */
   {
     cikti: "404.html",

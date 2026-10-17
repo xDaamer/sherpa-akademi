@@ -4,7 +4,7 @@ excerpt: "Kimyanın hangi konuları gerçekten ezber istiyor, hangileri kural ve
 tldr: "Kimyada ezber sanılan konuların çoğu aslında kurallı yapı. Periyodik sistemde yüz element değil dört eğilim, organikte bileşik isimleri değil adlandırma kuralı öğreniliyor. Gerçekten ezber isteyen kısım sanılandan çok daha küçük: iyon adları, çözünürlük kuralları ve sınırlı sayıda tepkime."
 type: karar
 category: yks
-author: akademitu-egitim-ekibi
+author: sherpa-akademi-egitim-ekibi
 tags: [kimya, ezber, calisma-yontemi, yks]
 status: published
 publishedAt: 2026-09-16

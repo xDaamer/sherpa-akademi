@@ -4,7 +4,7 @@ excerpt: "Edebiyatta dönem bilgisinin kronolojiyle öğrenilmesi, eser listesin
 tldr: "Edebiyatta dönemleri tek tek ezberlemek yerine aralarındaki geçişi öğrenmek gerekiyor; sorular çoğu zaman geçişi soruyor. Eser listesi kısa tutulmalı ve günlük tekrarla taşınmalı. Şiir bilgisi ise kurallı olduğu için haftalar içinde oturan en hızlı bloktur."
 type: nasil
 category: yks
-author: akademitu-egitim-ekibi
+author: sherpa-akademi-egitim-ekibi
 tags: [edebiyat, ayt, calisma-yontemi, siir]
 status: published
 publishedAt: 2026-09-16

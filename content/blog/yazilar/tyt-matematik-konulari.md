@@ -4,7 +4,7 @@ excerpt: "TYT matematikte 40 sorunun konulara dağılımı, problemlerin ve geom
 tldr: "TYT matematikte 40 soru var ve bunun 8-10'u geometri, 8-12'si problemlerdir. ÖSYM'nin 2026 verilerine göre son sınıf ortalaması 40 soruda 6,8 doğru; yani bu test sınavın en düşük ortalamalı testi ve burada yapılan her net sıralamada en çok karşılığı olan net."
 type: veri
 category: yks
-author: akademitu-egitim-ekibi
+author: sherpa-akademi-egitim-ekibi
 tags: [tyt, matematik, konu-dagilimi, geometri]
 status: published
 publishedAt: 2026-09-16

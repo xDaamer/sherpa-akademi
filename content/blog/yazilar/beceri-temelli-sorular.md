@@ -4,7 +4,7 @@ excerpt: "Yeni nesil olarak da anılan beceri temelli soruların mantığı, dö
 tldr: "Beceri temelli soru, bilgiyi doğrudan sormaz; bir metin, tablo ya da durum verip bilgiyi orada kullandırır. Çözümün anahtarı işleme erken başlamamak: önce soru kökü okunur, sonra veride yalnızca o köke yarayan kısım aranır. Zaman kaybının çoğu, sorunun neyi istediği anlaşılmadan başlanan hesaptan çıkıyor."
 type: nasil
 category: ders-calisma-teknikleri
-author: akademitu-egitim-ekibi
+author: sherpa-akademi-egitim-ekibi
 tags: [beceri-temelli, yeni-nesil-sorular, calisma-yontemi, lgs]
 status: published
 publishedAt: 2026-09-15

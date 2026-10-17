@@ -4,7 +4,7 @@ excerpt: "Tarihte tarih ezberi yerine neden-sonuç kurmak, dönem tablosu çıka
 tldr: "Tarihte sorular tarih sormuyor, ilişki soruyor. İşe yarayan yöntem her olay için sebep, gelişme ve sonuç üçlüsünü yazmak. Antlaşmalar tek tek değil karşılaştırmalı tabloda öğrenildiğinde maddeler karışmıyor."
 type: nasil
 category: yks
-author: akademitu-egitim-ekibi
+author: sherpa-akademi-egitim-ekibi
 tags: [tarih, calisma-yontemi, ayt, tyt]
 status: published
 publishedAt: 2026-09-16

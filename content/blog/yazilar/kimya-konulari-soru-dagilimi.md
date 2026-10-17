@@ -4,7 +4,7 @@ excerpt: "TYT'de 7, AYT'de 13 kimya sorusunun konulara dağılımı, ÖSYM ortal
 tldr: "Kimya TYT'de 7, AYT'de 13 soru getiriyor; toplam 20 soru. AYT kimya ortalaması 13 soruda 2,2 doğru ile sınavın en düşük ortalamalı testi. AYT'de organik kimya tek başına soruların dörtte birine yakınını oluşturuyor."
 type: veri
 category: yks
-author: akademitu-egitim-ekibi
+author: sherpa-akademi-egitim-ekibi
 tags: [kimya, konu-dagilimi, tyt, ayt]
 status: published
 publishedAt: 2026-09-16

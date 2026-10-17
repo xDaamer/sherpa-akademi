@@ -4,7 +4,7 @@ excerpt: "TYT Türkçe testinde 40 sorunun konulara nasıl dağıldığı, parag
 tldr: "TYT Türkçe 40 sorudan oluşur ve bunun yaklaşık yarısı paragraf sorusudur. Dil bilgisi 8-10 soru civarında kalır. ÖSYM resmî bir konu dağılımı yayımlamaz; buradaki sayılar son yılların eğilimidir ve öncelik sıralaması için kullanılır."
 type: veri
 category: yks
-author: akademitu-egitim-ekibi
+author: sherpa-akademi-egitim-ekibi
 tags: [tyt, turkce, konu-dagilimi, paragraf]
 status: published
 publishedAt: 2026-09-16

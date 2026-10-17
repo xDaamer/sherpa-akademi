@@ -4,7 +4,7 @@ excerpt: "Biyolojide süreç konularının şemayla öğrenilmesi, sistemler ara
 tldr: "Biyolojide en çok işe yarayan alışkanlık, metni şemaya çevirmek. Mitoz, protein sentezi ve fotosentez gibi süreçler okunarak değil çizilerek kalıcı oluyor. İnsan fizyolojisi ise ardışık çalışılmalı; sistemler arası ilişki koptuğunda sorular cevaplanamıyor."
 type: nasil
 category: yks
-author: akademitu-egitim-ekibi
+author: sherpa-akademi-egitim-ekibi
 tags: [biyoloji, calisma-yontemi, yks, tyt]
 status: published
 publishedAt: 2026-09-16

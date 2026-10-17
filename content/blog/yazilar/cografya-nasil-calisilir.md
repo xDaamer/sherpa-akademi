@@ -4,7 +4,7 @@ excerpt: "Coğrafyada harita üzerinden çalışmanın önemi, iklim ve yer şek
 tldr: "Coğrafyada en çok işe yarayan alışkanlık, her konuyu harita üzerinde çalışmak. İklim ve yer şekilleri ezberlenmiyor, oluşum süreci takip ediliyor. Coğrafya-2 konuları ise haber takibiyle besleniyor; güncel gelişmeler doğrudan soru oluyor."
 type: nasil
 category: yks
-author: akademitu-egitim-ekibi
+author: sherpa-akademi-egitim-ekibi
 tags: [cografya, calisma-yontemi, ayt, tyt]
 status: published
 publishedAt: 2026-09-16

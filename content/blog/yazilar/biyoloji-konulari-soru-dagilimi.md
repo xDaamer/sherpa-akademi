@@ -4,7 +4,7 @@ excerpt: "TYT'de 6, AYT'de 13 biyoloji sorusunun konulara dağılımı, sistemle
 tldr: "Biyoloji TYT'de 6, AYT'de 13 soru getiriyor. AYT biyoloji ortalaması 13 soruda 3,0 doğru ile AYT fen testlerinin en yükseği. AYT'de insan fizyolojisi sistemleri tek başına soruların yaklaşık yarısını oluşturuyor."
 type: veri
 category: yks
-author: akademitu-egitim-ekibi
+author: sherpa-akademi-egitim-ekibi
 tags: [biyoloji, konu-dagilimi, tyt, ayt]
 status: published
 publishedAt: 2026-09-16

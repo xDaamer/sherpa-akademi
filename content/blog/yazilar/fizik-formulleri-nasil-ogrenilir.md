@@ -4,7 +4,7 @@ excerpt: "Formül ezberinin neden işe yaramadığı, türetme yönteminin nası
 tldr: "Ezberlenen formül, bağlam değiştiğinde tanınmıyor. İşe yarayan yöntem her formülü bir kez türetmek ve yanına geçerlilik koşulunu yazmak. Birim analizi ise unutulan bir formülü sınavda yeniden kurmanın en hızlı yolu."
 type: nasil
 category: yks
-author: akademitu-egitim-ekibi
+author: sherpa-akademi-egitim-ekibi
 tags: [fizik, formul, calisma-yontemi, ezber]
 status: published
 publishedAt: 2026-09-16

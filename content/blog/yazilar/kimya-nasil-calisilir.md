@@ -4,7 +4,7 @@ excerpt: "Kimyada ezber ve hesap tarafının ayrı yöntemlerle çalışılması
 tldr: "Kimya tek bir ders gibi çalışılamıyor. Ezber tarafı her gün kısa tekrar, hesap tarafı ise haftada iki kesintisiz blok istiyor. İkisini aynı yöntemle çalışmak, çoğu öğrencinin kimyada tıkanmasının asıl sebebi."
 type: nasil
 category: yks
-author: akademitu-egitim-ekibi
+author: sherpa-akademi-egitim-ekibi
 tags: [kimya, calisma-yontemi, yks, tyt]
 status: published
 publishedAt: 2026-09-16

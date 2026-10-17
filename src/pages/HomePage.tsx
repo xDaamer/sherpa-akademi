@@ -4,6 +4,7 @@ import { HeroSection } from '../components/HeroSection';
 import { TrustBar } from '../components/TrustBar';
 import { PackagesSection } from '../components/PackagesSection';
 import { WhyUsSection } from '../components/WhyUsSection';
+import { SubjectsSection } from '../components/SubjectsSection';
 import { TestimonialsSection } from '../components/TestimonialsSection';
 import { FAQSection } from '../components/FAQSection';
 import { PageMeta, seoPage } from '../components/PageMeta';
@@ -42,6 +43,7 @@ export const HomePage: React.FC<HomePageProps> = ({ onOpenTrialForm }) => {
       <TrustBar />
       <PackagesSection onOpenTrialForm={onOpenTrialForm} />
       <WhyUsSection onOpenTrialForm={onOpenTrialForm} />
+      <SubjectsSection />
       <TestimonialsSection />
       <FAQSection />
     </main>

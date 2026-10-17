@@ -4,7 +4,7 @@ excerpt: "2026-2027 eğitim öğretim yılı takvimi: ara tatiller, yarıyıl ta
 tldr: "Okullar 14 Eylül 2026'da açıldı, yıl 25 Haziran 2027'de bitiyor. Ara tatiller 16-20 Kasım ve 8-12 Mart; yarıyıl tatili 25 Ocak - 5 Şubat. 2027 LGS ve YKS tarihleri henüz resmen açıklanmadı."
 type: guncel
 category: sinav-takvimi-duyurular
-author: akademitu-egitim-ekibi
+author: sherpa-akademi-egitim-ekibi
 tags: [sinav-takvimi, lgs, yks, ara-tatil]
 status: published
 publishedAt: 2026-09-15

@@ -4,7 +4,7 @@ excerpt: "Aktif hatırlama, aralıklı tekrar, araya karıştırma ve yanlış d
 tldr: "Aynı süreyi harcayan iki öğrenci arasındaki fark genelde yetenek değil yöntem. Ölçülmüş biçimde işe yarayan üç şey var: kendini sınamak, konuyu artan aralıklarla tekrar etmek ve farklı soru tiplerini karışık çözmek. Tekrar tekrar okumak bunların hiçbirinin yerini tutmuyor."
 type: pillar
 category: ders-calisma-teknikleri
-author: akademitu-egitim-ekibi
+author: sherpa-akademi-egitim-ekibi
 tags: [calisma-yontemi, araliklik-tekrar, aktif-hatirlama, odaklanma]
 status: published
 publishedAt: 2026-09-14

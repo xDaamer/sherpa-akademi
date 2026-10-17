@@ -169,18 +169,33 @@ export function organizationNode() {
     name: BRAND,
     url: `${SITE}/`,
     logo: `${SITE}${need.site.logoUrl}`,
-    sameAs: [need.social.instagram, need.social.youtube, need.social.twitter],
+    sameAs: Object.values(need.social),
   };
 }
 
 export function personNode(author: BlogAuthor) {
+  const url = absolute(SITE, authorPath(author.slug));
+  if (author.kind === "ekip") {
+    // Ekip bir kişi değil: kuruluşun alt birimi olarak işaretleniyor. @id
+    // parçası "#person" olarak kalıyor ki BlogPosting.author / ProfilePage
+    // referansları tek yerden değişmeden çözülsün.
+    return {
+      "@type": "Organization",
+      "@id": url + "#person",
+      name: author.fullName,
+      description: author.credentials,
+      url,
+      parentOrganization: { "@id": `${SITE}/#organization` },
+      ...(author.expertise.length > 0 ? { knowsAbout: author.expertise } : {}),
+    };
+  }
   return {
     "@type": "Person",
-    "@id": absolute(SITE, authorPath(author.slug)) + "#person",
+    "@id": url + "#person",
     name: author.fullName,
     jobTitle: author.jobTitle,
     description: author.credentials,
-    url: absolute(SITE, authorPath(author.slug)),
+    url,
     ...(author.expertise.length > 0 ? { knowsAbout: author.expertise } : {}),
     ...(author.linkedin ? { sameAs: [author.linkedin] } : {}),
   };

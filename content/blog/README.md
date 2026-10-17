@@ -129,10 +129,24 @@ yerler. Şüphe varsa yeni yazı açmayın, mevcut yazıyı genişletin.
   o dal için otomatik bir önizleme adresi üretir ve önizleme dağıtımları zaten
   arama motorlarına kapalıdır.
 
+## Yazarlar
+
+`kind: kisi` (varsayılan) gerçek bir insan içindir ve `Person` şeması üretir.
+Bir kadro adına yazılan içerik için `kind: ekip` kullanın; `Organization`
+olarak, sitenin kuruluşuna bağlı işaretlenir. Bir ekibi kişi gibi göstermek
+var olmayan bir yazar beyan etmek olur.
+
 ## Slug değiştirmek
 
 Dosyayı yeniden adlandırmak adresi değiştirir. Eski adres yer imlerinde ve
-Google'da duruyor olabilir, bu yüzden `yonlendirmeler.json`'a satır ekleyin:
+Google'da duruyor olabilir, bu yüzden yönlendirme gerekir.
+
+> **Dikkat:** `yonlendirmeler.json` şu an yalnızca doğrulanıyor, hiçbir yere
+> yazılmıyor — oraya eklenen satır canlıda yönlendirme ÜRETMEZ. Gerçek
+> yönlendirmeyi kök dizindeki `vercel.json`'un `redirects` listesine
+> `"permanent": true` ile ekleyin (örnek: yazar adresi
+> `/blog/yazar/akademitu-egitim-ekibi` orada yönleniyor). Aşağıdaki biçim,
+> dosya ileride bağlanırsa diye duruyor:
 
 ```json
 [{ "from": "/blog/eski-adres", "to": "/blog/yeni-adres" }]

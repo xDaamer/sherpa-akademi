@@ -4,7 +4,7 @@ excerpt: "YKS'ye sıfırdan başlayan bir öğrenci için sınav formatı, konu 
 tldr: "YKS iki oturumdur: TYT temel dersleri, AYT alan derslerini ölçer. Sıfırdan başlayan biri için sıra şudur: önce formatı öğren, sonra seviye tespiti yap, TYT ağırlıklı bir düzen kur ve dördüncü aydan itibaren haftada bir deneme çöz."
 type: pillar
 category: yks
-author: akademitu-egitim-ekibi
+author: sherpa-akademi-egitim-ekibi
 tags: [yks, tyt, ayt, calisma-programi]
 status: published
 publishedAt: 2026-09-14
@@ -490,6 +490,12 @@ sebebi, yanlış defterinin biçimi —
 Son sınıfın en çok tartışılan planlama sorusu olan öncelik kararı ise
 [TYT matematik mi AYT matematik mi](/blog/tyt-matematik-ayt-matematik)
 yazısında ele alındı.
+
+AYT tarafında türev, integral ve trigonometrinin ağırlığı
+[AYT matematik konuları](/blog/ayt-matematik-konulari) yazısında. İki testte
+toplam 16-20 soru getiren geometrinin konu dağılımı
+[geometri konuları](/blog/geometri-konulari-soru-dagilimi), çalışma yöntemi
+ise [geometri nasıl çalışılır](/blog/geometri-nasil-calisilir) yazısında.
 
 ### Fen bilimleri
 

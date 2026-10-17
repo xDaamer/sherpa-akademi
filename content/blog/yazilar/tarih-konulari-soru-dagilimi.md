@@ -4,7 +4,7 @@ excerpt: "TYT'de 5, AYT'de 21 tarih sorusunun konulara dağılımı, Tarih-1 ve 
 tldr: "Tarih TYT'de 5, AYT'de 21 soru getiriyor; toplam 26 soru ile sözel derslerin en büyüğü. AYT ikiye ayrılıyor: Tarih-1'de 10 soru eski dönemlerden, Tarih-2'de 11 soru yakın çağ ve Cumhuriyet döneminden geliyor."
 type: veri
 category: yks
-author: akademitu-egitim-ekibi
+author: sherpa-akademi-egitim-ekibi
 tags: [tarih, konu-dagilimi, tyt, ayt]
 status: published
 publishedAt: 2026-09-16

@@ -1,4 +1,5 @@
 ---
+kind: kisi                     # kisi -> Person şeması · ekip -> Organization
 fullName: "Ad Soyad"
 jobTitle: "Matematik Öğretmeni & YKS Koçu"
 credentials: "DOLDUR: mezuniyet, kaç yıldır ders verdiği, varsa derecesi ve sertifikaları. Person şemasına ve yazar kutusuna bu metin giriyor; uydurma bilgi yazmayın."

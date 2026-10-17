@@ -4,7 +4,7 @@ excerpt: "TYT Türkçe'de net yükseltmenin yolu: günlük paragraf düzeni, dil
 tldr: "Türkçe neti soru çözerek değil, yanlışı sebebe göre ayırarak yükseliyor. Günde 15-20 paragraf sorusu, haftada iki dil bilgisi oturumu ve her denemeden sonra yanlışların alt tipe göre işaretlenmesi işe yarayan düzen. Test süresi 35-40 dakikada tutulmalı."
 type: nasil
 category: yks
-author: akademitu-egitim-ekibi
+author: sherpa-akademi-egitim-ekibi
 tags: [tyt, turkce, calisma-yontemi, paragraf]
 status: published
 publishedAt: 2026-09-16

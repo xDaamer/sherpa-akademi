@@ -4,7 +4,7 @@ excerpt: "Tarih şeridi çıkarma yöntemi, hangi tarihlerin gerçekten ezberlen
 tldr: "Bütün tarihleri ezberlemek gereksiz. İşe yarayan yöntem her dönem için birkaç çapa tarih belirlemek ve diğer olayları bu çapalara göre konumlandırmak. Sınav zaten mutlak tarih değil sıralama soruyor."
 type: nasil
 category: yks
-author: akademitu-egitim-ekibi
+author: sherpa-akademi-egitim-ekibi
 tags: [tarih, kronoloji, calisma-yontemi, ayt]
 status: published
 publishedAt: 2026-09-16

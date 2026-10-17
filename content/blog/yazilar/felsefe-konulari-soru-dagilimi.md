@@ -4,7 +4,7 @@ excerpt: "TYT'de 5, AYT'de 12 felsefe grubu sorusunun dağılımı, psikoloji-so
 tldr: "Felsefe TYT'de 5, AYT'de 12 soru getiriyor. AYT'deki 12 soru dört alt derse eşit dağılıyor: üçer soru felsefe, psikoloji, sosyoloji ve mantık. Mantık, ezber istemeyen ve kısa sürede net getiren tek alt ders."
 type: veri
 category: yks
-author: akademitu-egitim-ekibi
+author: sherpa-akademi-egitim-ekibi
 tags: [felsefe, psikoloji, sosyoloji, mantik, konu-dagilimi]
 status: published
 publishedAt: 2026-09-16
