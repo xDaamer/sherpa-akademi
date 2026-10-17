@@ -63,6 +63,8 @@ import { SHOW_TEACHER_TICKER } from "../src/config.ts";
  * Rewrite hedefi bir dosya olduğu için Vercel onu 200 ile döndürüyordu: var
  * olmayan her adres (/llms.txt, /Blog, /manifest.json...) "soft 404"tü. Kural
  * kalkınca aynı sayfa gerçek 404 koduyla geliyor. Geri eklemeyin.
+ * Ana sitede panel alt yolları (/ogretmen, /yorumlar, /yonetim) dosya olmadığı için
+ * artık 404'e düşerdi; bu yüzden vercel.json'da portal host'una 308 ile yönleniyorlar.
  *
  * Eskiden tek bir kural vardı ve her şeyi /index.html'e yolluyordu. O zaman
  * zararsızdı çünkü index.html boş bir kabuktu; artık ana sayfanın tam içeriği,

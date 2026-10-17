@@ -19,6 +19,9 @@
     { "source": "/portal/:path*", "has": [{ "type": "host", "value": "^portal\\.akademitu\\.com$" }], "destination": "/", "permanent": true },
 
     { "source": "/portal", "has": [{ "type": "host", "value": "^(www\\.)?sherpakademi\\.com$" }], "destination": "/login", "permanent": true },
+    { "source": "/ogretmen", "has": [{ "type": "host", "value": "^(www\\.)?sherpakademi\\.com$" }], "destination": "https://portal.sherpakademi.com/ogretmen", "permanent": true },
+    { "source": "/yorumlar", "has": [{ "type": "host", "value": "^(www\\.)?sherpakademi\\.com$" }], "destination": "https://portal.sherpakademi.com/yorumlar", "permanent": true },
+    { "source": "/yonetim", "has": [{ "type": "host", "value": "^(www\\.)?sherpakademi\\.com$" }], "destination": "https://portal.sherpakademi.com/yonetim", "permanent": true },
     { "source": "/blog/yazar/akademitu-egitim-ekibi", "destination": "/blog/yazar/sherpa-akademi-egitim-ekibi", "permanent": true },
     { "source": "/portal/kayit", "has": [{ "type": "host", "value": "^(www\\.)?sherpakademi\\.com$" }], "destination": "/login", "permanent": true },
     { "source": "/portal/panel", "has": [{ "type": "host", "value": "^(www\\.)?sherpakademi\\.com$" }], "destination": "https://portal.sherpakademi.com/", "permanent": true },
