@@ -65,7 +65,7 @@ const services = [
 const serviceSchema = {
   "@context": "https://schema.org",
   "@type": "ItemList",
-  "name": "YKS ve LGS özel ders ve koçluk paketleri",
+  "name": "Birebir özel ders paketleri",
   "itemListElement": services.map((service, index) => ({
     "@type": "ListItem",
     "position": index + 1,
@@ -74,7 +74,7 @@ const serviceSchema = {
       "@id": `${SITE_URL}/#${service.id}`,
       "name": service.name,
       "description": service.description,
-      "serviceType": "Online özel ders ve sınav koçluğu",
+      "serviceType": "Online birebir özel ders",
       "provider": provider,
       "areaServed": { "@type": "Country", "name": "Türkiye" },
       "offers": {
@@ -114,7 +114,7 @@ export const PackagesSection: React.FC<PackagesSectionProps> = ({ onOpenTrialFor
           {/* H2'ler hedef ifadeleri taşımalı: eskiden dört H2'nin hiçbirinde
               "YKS", "LGS", "koçluk" veya "özel ders" geçmiyordu. */}
           <h2 className="text-3xl sm:text-4xl font-extrabold text-[#191F61] tracking-tight">
-            YKS ve LGS Özel Ders ve Koçluk Paketleri
+            Birebir Özel Ders Paketleri
           </h2>
           <p className="mt-3 text-slate-600 text-base sm:text-lg">
             Birebir özel derslerle eksiklerini kapat, hedefine adım adım yaklaş. Sürpriz ücret yok!

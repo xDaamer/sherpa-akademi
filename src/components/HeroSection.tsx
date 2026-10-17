@@ -29,14 +29,15 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ onOpenTrialForm }) => 
             
             {/*
               BAŞLIK
-              Title "YKS ve LGS Özel Ders ve Koçluk | ..." vaat ediyor;
+              Title "Online Birebir Özel Ders | ..." vaat ediyor;
               H1 bunu doğrulamalı — arayan kişi SERP'te gördüğü ifadeyi
-              sayfada bulabilmeli. Vurgu 2026-10-09'da "derece hocaları"ndan
+              sayfada bulabilmeli. 2026-10-18: ana vurgu "YKS/LGS koçluğu"ndan
+              özel derse alındı; YKS/LGS hedef kitle olarak ikinci planda. Vurgu 2026-10-09'da "derece hocaları"ndan
               birebir özel derse taşındı: kadro artık derece yapmış
               hocalarla sınırlı değil, o iddia geri eklenirse doğru olmaz.
             */}
             <h1 className={`${ticker ? 'text-2xl sm:text-3xl md:text-3xl lg:text-5xl' : 'text-2xl sm:text-3xl md:text-4xl lg:text-5xl'} font-extrabold text-white leading-[1.18] tracking-tight`}>
-              Eksiklerini Birebir Kapat: YKS ve LGS Özel Ders ve Koçluk
+              Birebir Online Özel Ders ile Eksiklerini Kapat
             </h1>
 
             {/* AVANTAJ MADDELERİ
@@ -48,11 +49,11 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ onOpenTrialForm }) => 
                 {/* "Özel ders" ifadesinin ilk 100 kelimede geçmesi için:
                     eskiden sadece "Birebir Ders" yazıyordu ve ifade ancak
                     ~120. kelimede (paket kartında) ortaya çıkıyordu. */}
-                <span>YKS &amp; LGS Birebir Özel Ders</span>
+                <span>Birebir Özel Ders</span>
               </div>
               <div className="flex items-center gap-2">
                 <CheckCircle className="w-4 h-4 text-[#B6D6CC] shrink-0" />
-                <span>Kişiye Özel Koçluk</span>
+                <span>YKS &amp; LGS Hazırlık</span>
               </div>
               <div className="flex items-center gap-2">
                 <CheckCircle className="w-4 h-4 text-[#B6D6CC] shrink-0" />

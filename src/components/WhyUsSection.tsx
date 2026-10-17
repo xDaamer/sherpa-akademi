@@ -42,7 +42,7 @@ export const WhyUsSection: React.FC<WhyUsSectionProps> = ({ onOpenTrialForm }) =
             Farkımız
           </span>
           <h2 className="text-3xl sm:text-4xl font-extrabold text-[#191F61] tracking-tight mt-3">
-            Neden Sherpa Akademi ile YKS-LGS Koçluğu?
+            Neden Sherpa Akademi'de Özel Ders?
           </h2>
           <p className="mt-3 text-slate-600 text-base sm:text-lg">
             Kalabalık sınıflar yerine birebir özel ders: eksiklerini tek tek kapat, hedefine kendi hızında ilerle.

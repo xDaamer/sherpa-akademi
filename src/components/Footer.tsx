@@ -32,8 +32,8 @@ const sectionLinks = [
  * gidiyor; anchor text zaten idealdi, sadece `<a>` içine alınması gerekiyordu.
  */
 const programLinks = [
-  { id: 'paketler', label: 'YKS Sayısal / Eşit Ağırlık Koçluğu' },
-  { id: 'paketler', label: 'LGS Birebir Hazırlık & Mentörlük' },
+  { id: 'paketler', label: 'YKS Sayısal / Eşit Ağırlık Özel Ders' },
+  { id: 'paketler', label: 'LGS Birebir Özel Ders' },
   { id: 'paketler', label: 'Matematik & Geometri Özel Ders' },
   { id: 'paketler', label: 'Fizik, Kimya, Biyoloji Dersleri' },
   { id: 'neden-biz', label: 'Sınav Stresi & Zaman Yönetimi' },
@@ -79,7 +79,7 @@ export const Footer: React.FC<FooterProps> = ({ onOpenTrialForm }) => {
               </span>
             </div>
             <p className="text-slate-300 text-sm leading-relaxed">
-              Birebir özel derslerle eksiklerini kapat, YKS ve LGS’de hayalindeki liseye ya da üniversiteye hazırlan. Kişiselleştirilmiş koçlukla her adımda yanındayız.
+              Birebir online özel derslerle eksiklerini kapat, hayalindeki liseye ya da üniversiteye kendi hızında hazırlan.
             </p>
           </div>
 

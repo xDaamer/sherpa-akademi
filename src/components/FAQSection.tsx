@@ -81,10 +81,10 @@ export const FAQSection: React.FC = () => {
             <span>Sıkça Sorulan Sorular</span>
           </div>
           <h2 className="text-3xl sm:text-4xl font-extrabold text-[#191F61] tracking-tight">
-            YKS ve LGS Koçluğu Hakkında Sıkça Sorulan Sorular
+            Özel Ders Hakkında Sıkça Sorulan Sorular
           </h2>
           <p className="mt-2 text-slate-600 text-sm sm:text-base">
-            Sherpa Akademi koçluk ve özel ders sistemi hakkında bilmek istediğiniz her şey.
+            Sherpa Akademi özel ders sistemi hakkında bilmek istediğiniz her şey.
           </p>
         </div>
 

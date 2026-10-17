@@ -4,9 +4,9 @@
     "version": "2.1.2",
     "domain": "https://www.sherpakademi.com",
     "domainLocal": "www.sherpakademi.com",
-    "title": "YKS ve LGS Özel Ders ve Koçluk | Eksiklerini Birebir Kapat",
-    "description": "YKS ve LGS için birebir online özel ders ve koçluk: eksiklerini sana özel planla kapat. İlk ders ücretsiz, taahhüt yok. Ders başı 950 TL, şeffaf fiyat.",
-    "keywords": "YKS koçluk, LGS koçluk, online YKS özel ders, online LGS özel ders, TYT matematik özel ders, AYT matematik özel ders, LGS matematik özel ders, üniversite hazırlık koçluğu",
+    "title": "Online Birebir Özel Ders | YKS ve LGS'ye Hazırlık",
+    "description": "Birebir online özel ders: matematikten fen derslerine eksiklerini sana özel planla kapat, YKS ve LGS'ye hazırlan. İlk ders ücretsiz, taahhüt yok. Ders başı 950 TL.",
+    "keywords": "online özel ders, birebir özel ders, matematik özel ders, online YKS özel ders, online LGS özel ders, TYT matematik özel ders, AYT matematik özel ders, LGS matematik özel ders",
     "language": "tr_TR",
     "themeColor": "#191F61",
     "logoUrl": "/logo.png"
@@ -36,8 +36,8 @@
       {
         "id": "home",
         "path": "/",
-        "title": "YKS ve LGS Özel Ders ve Koçluk | Eksiklerini Birebir Kapat",
-        "description": "YKS ve LGS için birebir online özel ders ve koçluk: eksiklerini sana özel planla kapat. İlk ders ücretsiz, taahhüt yok. Ders başı 950 TL, şeffaf fiyat.",
+        "title": "Online Birebir Özel Ders | YKS ve LGS'ye Hazırlık",
+        "description": "Birebir online özel ders: matematikten fen derslerine eksiklerini sana özel planla kapat, YKS ve LGS'ye hazırlan. İlk ders ücretsiz, taahhüt yok. Ders başı 950 TL.",
         "changefreq": "weekly",
         "priority": 1
       },
@@ -61,7 +61,7 @@
     "_notFoundNote": "404 BİLEREK `pages` DİZİSİNİN DIŞINDA. scripts/generate-seo.ts o diziyi olduğu gibi sitemap.xml'e çeviriyor; buraya bir girdi eklemek /404'ü sitemap'e yazmak olurdu. Kardeş anahtar olarak duruyor ki hem NotFoundPage hem scripts/prerender.ts aynı metni okusun ve ikisi ayrışmasın.",
     "notFound": {
       "title": "Sayfa Bulunamadı | Sherpa Akademi",
-      "description": "Aradığınız sayfa bulunamadı. Sherpa Akademi ana sayfasından YKS ve LGS koçluk paketlerimize ulaşabilirsiniz."
+      "description": "Aradığınız sayfa bulunamadı. Sherpa Akademi ana sayfasından özel ders paketlerimize ulaşabilirsiniz."
     }
   },
   "legal": {
