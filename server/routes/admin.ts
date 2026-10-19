@@ -3,6 +3,7 @@ import { serviceClient } from "../supabase.js";
 import { auditLog } from "../audit.js";
 import { requireSession, requireUserType, type SessionLocals } from "../roles.js";
 import { eksikSemaMi } from "../semaHatasi.js";
+import { metaYapilandirildi } from "../metaLeads.js";
 import { TR_OFFSET, haftaBasi, haftaSonrasi } from "../weekUtils.js";
 import {
   type Aralik,
@@ -1650,10 +1651,16 @@ router.delete("/odemeler/:id", async (req, res) => {
  * `website` (bal küpü) ve `first_seen_lead_id` seçilmiyor: ilki dolu olan
  * satır zaten hiç yazılmıyor (server.ts reddediyor), ikincisinin panelde
  * karşılığı `is_repeat_submission` bayrağı.
+ *
+ * İKİ KAYNAK: sitedeki form (`source = 'website'`) ve Meta Lead Ads
+ * (`source = 'meta'`, server/metaLeads.ts — Google Sheets üzerinden). Aynı tablo, aynı liste;
+ * `kaynak` filtresi ayırıyor. Meta satırlarının formdaki ham soru/cevapları
+ * `meta_fields`'ta, panel onları ayrıca gösteriyor.
  */
 
 const BASVURU_SAYFA_BOYUTU = 50;
 const BASVURU_SINAVLARI = new Set(["YKS", "LGS", "Diğer"]);
+const BASVURU_KAYNAKLARI = new Set(["website", "meta"]);
 
 /**
  * Arama metni PostgREST'in `or=(...)` sözdiziminin İÇİNE yazılıyor. Virgül,
@@ -1671,7 +1678,7 @@ function aramaMetni(value: unknown): string | null {
   return temiz.length >= 2 ? temiz : null;
 }
 
-/** BAŞVURULARI LİSTELE — GET /api/admin/basvurular?sayfa=&q=&sinav=&adim= */
+/** BAŞVURULARI LİSTELE — GET /api/admin/basvurular?sayfa=&q=&sinav=&adim=&kaynak= */
 router.get("/basvurular", async (req, res) => {
   const { userId: yapanId } = res.locals as unknown as SessionLocals;
   const admin = serviceClient();
@@ -1680,13 +1687,20 @@ router.get("/basvurular", async (req, res) => {
   const sayfa = Math.min(Math.max(Number.parseInt(String(req.query.sayfa ?? "1"), 10) || 1, 1), 10_000);
   const bas = (sayfa - 1) * BASVURU_SAYFA_BOYUTU;
 
-  try {
+  const kaynak =
+    typeof req.query.kaynak === "string" && BASVURU_KAYNAKLARI.has(req.query.kaynak)
+      ? req.query.kaynak
+      : null;
+
+  /* `metaKolonlari` false: supabase-meta-leads.sql henüz çalıştırılmamış
+     (aşağıdaki yedek deneme). */
+  const sorguKur = (metaKolonlari: boolean) => {
     let sorgu = admin
       .from("leads")
-      /* Tek literal olmalı: birleştirilmiş string supabase-js'in satır tipini
-         çıkarmasını engelliyor. */
       .select(
-        "id, created_at, updated_at, full_name, phone, exam_type, step, student_full_name, parent_full_name, user_role, grade_class, selected_subjects, is_repeat_submission",
+        metaKolonlari
+          ? "id, created_at, updated_at, full_name, phone, exam_type, step, student_full_name, parent_full_name, user_role, grade_class, selected_subjects, is_repeat_submission, source, meta_ad_name, meta_campaign_name, meta_platform, meta_fields"
+          : "id, created_at, updated_at, full_name, phone, exam_type, step, student_full_name, parent_full_name, user_role, grade_class, selected_subjects, is_repeat_submission",
         { count: "exact" },
       )
       /* `id` eşitlik bozucu: adım 1 damgayı sunucudan alıyor ve aynı
@@ -1698,6 +1712,7 @@ router.get("/basvurular", async (req, res) => {
     if (typeof req.query.sinav === "string" && BASVURU_SINAVLARI.has(req.query.sinav)) {
       sorgu = sorgu.eq("exam_type", req.query.sinav);
     }
+    if (kaynak && metaKolonlari) sorgu = sorgu.eq("source", kaynak);
     if (req.query.adim === "1" || req.query.adim === "2") {
       sorgu = sorgu.eq("step", Number(req.query.adim));
     }
@@ -1717,8 +1732,31 @@ router.get("/basvurular", async (req, res) => {
       if (rakamlar.length >= 3) kosullar.push(`phone.ilike.*${rakamlar}*`);
       sorgu = sorgu.or(kosullar.join(","));
     }
+    return sorgu;
+  };
 
-    const { data, error, count } = await sorgu;
+  try {
+    /* Kolon listesi koşullu olduğu için supabase-js satır tipini çıkaramıyor;
+       aşağıdaki eşleme her alanı zaten kendisi doğruluyor. */
+    type Sonuc = {
+      data: Record<string, any>[] | null;
+      error: { code?: string; message: string } | null;
+      count: number | null;
+    };
+    let { data, error, count } = (await sorguKur(true)) as unknown as Sonuc;
+    /* Meta kolonları yoksa (migration push'tan sonra çalıştırıldıysa) sekme
+       çökmesin: eski kolonlarla tekrar denenir; bütün satırlar zaten siteden
+       geldi, Meta görünümü boş döner. */
+    if (error && eksikSemaMi(error)) {
+      console.warn("[Admin] leads'te Meta kolonları yok — supabase-meta-leads.sql çalıştırılmalı.");
+      if (kaynak === "meta") {
+        data = [];
+        count = 0;
+        error = null;
+      } else {
+        ({ data, error, count } = (await sorguKur(false)) as unknown as Sonuc);
+      }
+    }
     if (error) {
       console.error("[Admin] başvurular okunamadı:", error.message);
       return res.status(502).json({ success: false, error: GENERIC_ERROR });
@@ -1729,7 +1767,7 @@ router.get("/basvurular", async (req, res) => {
        metni YAZILMIYOR: bir telefon numarası olabilir. */
     auditLog(req, "ADMIN_LEADS_VIEWED", {
       userId: yapanId,
-      detay: { sayfa, adet: data?.length ?? 0 },
+      detay: { sayfa, adet: data?.length ?? 0, kaynak: kaynak ?? "hepsi" },
     });
 
     return res.json({
@@ -1737,6 +1775,10 @@ router.get("/basvurular", async (req, res) => {
       total: count ?? 0,
       page: sayfa,
       pageSize: BASVURU_SAYFA_BOYUTU,
+      /* Yalnızca "ortam değişkenleri tanımlı mı" — değerlerin kendisi değil.
+         Meta görünümü boşken "bağlantı kurulmamış" ile "henüz başvuru yok"u
+         ayırmak için. */
+      metaConfigured: metaYapilandirildi(),
       leads: (data ?? []).map((l) => ({
         id: l.id,
         createdAt: l.created_at,
@@ -1751,6 +1793,21 @@ router.get("/basvurular", async (req, res) => {
         gradeClass: l.grade_class || null,
         subjects: Array.isArray(l.selected_subjects) ? l.selected_subjects : [],
         isRepeat: Boolean(l.is_repeat_submission),
+        source: l.source === "meta" ? "meta" : "website",
+        meta:
+          l.source === "meta"
+            ? {
+                adName: l.meta_ad_name || null,
+                campaignName: l.meta_campaign_name || null,
+                platform: l.meta_platform || null,
+                fields: Array.isArray(l.meta_fields)
+                  ? (l.meta_fields as { name?: unknown; values?: unknown }[]).map((f) => ({
+                      name: String(f?.name ?? ""),
+                      value: Array.isArray(f?.values) ? f.values.map(String).join(", ") : "",
+                    }))
+                  : [],
+              }
+            : null,
       })),
     });
   } catch (err: any) {

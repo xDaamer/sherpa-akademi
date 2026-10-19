@@ -21,6 +21,11 @@ import { Girdi, Secim, Kutu, Uyari, Bos, sadeceTarih, sadeceSaat, telefonGoster 
  * "Ad Soyad" TEK KOLON: form onu tek alan olarak soruyor ve tabloda da tek
  * kolon. Ad ile soyadı burada bölmek tahmin olurdu ("Ayşe Nur Yılmaz"da
  * soyad hangisi?), tahmini veri gibi göstermek de yanıltıcı.
+ *
+ * İKİ KAYNAK: sitedeki form ve Meta (Facebook/Instagram) reklam formları
+ * aynı tabloda; üstteki "Web sitesi / Meta" seçimi ayırıyor. Meta formundaki
+ * sorular sitedekilerle birebir örtüşmediği için, Meta satırında formun ham
+ * soru/cevapları ayrıca gösteriliyor (bkz. server/metaLeads.ts).
  */
 
 interface Basvuru {
@@ -38,10 +43,18 @@ interface Basvuru {
   gradeClass: string | null;
   subjects: string[];
   isRepeat: boolean;
+  source: 'website' | 'meta';
+  meta: {
+    adName: string | null;
+    campaignName: string | null;
+    platform: string | null;
+    fields: { name: string; value: string }[];
+  } | null;
 }
 
 interface Cevap {
   leads: Basvuru[];
+  metaConfigured: boolean;
   total: number;
   page: number;
   pageSize: number;
@@ -52,9 +65,78 @@ const Yok: React.FC = () => <span className="text-slate-300">—</span>;
 /** Boş/null metin için tire; tablo hücrelerinde boşluğu "yüklenmedi" sanmasınlar. */
 const Deger: React.FC<{ v: string | null | undefined }> = ({ v }) => (v ? <>{v}</> : <Yok />);
 
+type Kaynak = '' | 'website' | 'meta';
+
+const KAYNAKLAR: { deger: Kaynak; etiket: string }[] = [
+  { deger: '', etiket: 'Tümü' },
+  { deger: 'website', etiket: 'Web sitesi' },
+  { deger: 'meta', etiket: 'Meta' },
+];
+
+/* Graph'ın `platform` değeri ("fb" / "ig"); tanınmayan bir değer gelirse
+   rozet yalnızca "Meta" der, uydurmaz. */
+const PLATFORM_ETIKET: Record<string, string> = {
+  fb: 'Facebook',
+  facebook: 'Facebook',
+  ig: 'Instagram',
+  instagram: 'Instagram',
+};
+
+const KaynakRozeti: React.FC<{ b: Basvuru }> = ({ b }) =>
+  b.source === 'meta' ? (
+    <span
+      title={
+        [b.meta?.campaignName, b.meta?.adName].filter(Boolean).join(' · ') || 'Meta reklam formu'
+      }
+      className="whitespace-nowrap rounded-full bg-blue-100 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-blue-800"
+    >
+      {(b.meta?.platform && PLATFORM_ETIKET[b.meta.platform.toLowerCase()]) || 'Meta'}
+    </span>
+  ) : (
+    <span className="whitespace-nowrap rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-slate-600">
+      Site
+    </span>
+  );
+
+/*
+ * Meta formunun ham soru/cevapları. Ad ve telefon zaten kendi kolonlarında;
+ * burada tekrarlanmıyor. Soru adları Meta'nın verdiği hâliyle (özel
+ * sorularda formu kuranın yazdığı metin, alt çizgili).
+ *
+ * Etiket cevabın ÜSTÜNDE, yanında değil: özel sorular uzun cümleler
+ * ("hangi sınava hazırlanıyorsunuz?") ve yan yana dizilince etiket sütunu
+ * cevabı dar bir şeride sıkıştırıyordu.
+ */
+const soruEtiketi = (ad: string) => {
+  const metin = ad.replace(/_/g, ' ').trim();
+  return metin.charAt(0).toLocaleUpperCase('tr') + metin.slice(1);
+};
+const GIZLI_META_ALANLARI = new Set(['full_name', 'first_name', 'last_name', 'phone_number']);
+
+const MetaAlanlari: React.FC<{ b: Basvuru; bosken?: React.ReactNode }> = ({ b, bosken = null }) => {
+  const alanlar = (b.meta?.fields ?? []).filter((f) => f.value && !GIZLI_META_ALANLARI.has(f.name));
+  if (!b.meta || (alanlar.length === 0 && !b.meta.campaignName && !b.meta.adName)) return <>{bosken}</>;
+  const satirlar = [
+    ...(b.meta.campaignName ? [{ k: 'Kampanya', v: b.meta.campaignName }] : []),
+    ...(b.meta.adName ? [{ k: 'Reklam', v: b.meta.adName }] : []),
+    ...alanlar.map((f) => ({ k: soruEtiketi(f.name), v: f.value })),
+  ];
+  return (
+    <dl className="mt-2 space-y-1.5 text-xs">
+      {satirlar.map((x, i) => (
+        <div key={`${i}-${x.k}`}>
+          <dt className="font-bold text-slate-400">{x.k}</dt>
+          <dd className="text-slate-700">{x.v}</dd>
+        </div>
+      ))}
+    </dl>
+  );
+};
+
 const DurumRozeti: React.FC<{ b: Basvuru }> = ({ b }) => (
   <div className="flex flex-wrap gap-1">
-    {b.step >= 2 ? (
+    <KaynakRozeti b={b} />
+    {b.source === 'meta' ? null : b.step >= 2 ? (
       <span
         title={
           b.updatedAt
@@ -129,6 +211,7 @@ export const AdminLeads: React.FC = () => {
   const [sorguArama, setSorguArama] = useState('');
   const [sinav, setSinav] = useState('');
   const [adim, setAdim] = useState('');
+  const [kaynak, setKaynak] = useState<Kaynak>('');
   const [sayfa, setSayfa] = useState(1);
   const [cevap, setCevap] = useState<Cevap | null>(null);
   const [yukleniyor, setYukleniyor] = useState(true);
@@ -157,6 +240,7 @@ export const AdminLeads: React.FC = () => {
     if (sorguArama) p.set('q', sorguArama);
     if (sinav) p.set('sinav', sinav);
     if (adim) p.set('adim', adim);
+    if (kaynak) p.set('kaynak', kaynak);
 
     try {
       const veri = await apiFetch<Cevap>(`/api/admin/basvurular?${p.toString()}`);
@@ -169,7 +253,7 @@ export const AdminLeads: React.FC = () => {
     } finally {
       if (no === istekNo.current) setYukleniyor(false);
     }
-  }, [sayfa, sorguArama, sinav, adim]);
+  }, [sayfa, sorguArama, sinav, adim, kaynak]);
 
   useEffect(() => {
     void getir();
@@ -187,7 +271,8 @@ export const AdminLeads: React.FC = () => {
   const sonSayfa = Math.max(1, Math.ceil(toplam / boyut));
   const ilk = toplam === 0 ? 0 : (sayfa - 1) * boyut + 1;
   const son = Math.min(sayfa * boyut, toplam);
-  const filtreVar = Boolean(sorguArama || sinav || adim);
+  const filtreVar = Boolean(sorguArama || sinav || adim || kaynak);
+  const metaBagliDegil = cevap?.metaConfigured === false;
 
   return (
     <div ref={ustRef} className="scroll-mt-4">
@@ -201,6 +286,39 @@ export const AdminLeads: React.FC = () => {
         }
       >
         {hata && <Uyari tur="hata">{hata}</Uyari>}
+
+        <div
+          role="radiogroup"
+          aria-label="Başvuru kaynağı"
+          className="mb-3 inline-flex rounded-xl bg-slate-100 p-1"
+        >
+          {KAYNAKLAR.map((k) => (
+            <button
+              key={k.deger || 'hepsi'}
+              type="button"
+              role="radio"
+              aria-checked={kaynak === k.deger}
+              onClick={() => {
+                setKaynak(k.deger);
+                setSayfa(1);
+              }}
+              className={`rounded-lg px-3 py-1.5 text-sm font-semibold transition-colors ${
+                kaynak === k.deger
+                  ? 'bg-white text-[#191F61] shadow-sm'
+                  : 'text-slate-500 hover:text-[#191F61]'
+              }`}
+            >
+              {k.etiket}
+            </button>
+          ))}
+        </div>
+
+        {kaynak === 'meta' && metaBagliDegil && (
+          <Uyari tur="hata">
+            Meta bağlantısı henüz kurulmamış: sunucuda META_SHEETS_KEY tanımlı değil. Tanımlanana
+            kadar Google Sheets'teki Meta başvuruları buraya aktarılmaz.
+          </Uyari>
+        )}
 
         <div className="mb-4 grid grid-cols-1 gap-2 sm:grid-cols-[1fr_auto_auto_auto]">
           <label className="relative block">
@@ -300,11 +418,18 @@ export const AdminLeads: React.FC = () => {
                     <dd className="text-slate-700"><Deger v={b.parentFullName} /></dd>
                     <dt className="font-bold text-slate-400">Sınıf</dt>
                     <dd className="text-slate-700"><Deger v={b.gradeClass} /></dd>
-                    <dt className="font-bold text-slate-400">Dersler</dt>
-                    <dd className="text-slate-700">
-                      <Deger v={b.subjects.join(', ')} />
-                    </dd>
+                    {/* Meta formunda ders sorusu yok; yerine formun kendi
+                        cevapları aşağıda. */}
+                    {b.source !== 'meta' && (
+                      <>
+                        <dt className="font-bold text-slate-400">Dersler</dt>
+                        <dd className="text-slate-700">
+                          <Deger v={b.subjects.join(', ')} />
+                        </dd>
+                      </>
+                    )}
                   </dl>
+                  <MetaAlanlari b={b} />
                 </li>
               ))}
             </ul>
@@ -323,7 +448,7 @@ export const AdminLeads: React.FC = () => {
                     <th className={TH}>Öğrenci</th>
                     <th className={TH}>Veli</th>
                     <th className={TH}>Sınıf</th>
-                    <th className={TH}>Dersler</th>
+                    <th className={TH}>Dersler / Form</th>
                     <th className={TH}>Durum</th>
                   </tr>
                 </thead>
@@ -358,7 +483,11 @@ export const AdminLeads: React.FC = () => {
                         <Deger v={b.gradeClass} />
                       </td>
                       <td className={`${TD} max-w-[240px] text-xs`}>
-                        <Deger v={b.subjects.join(', ')} />
+                        {b.source === 'meta' ? (
+                          <MetaAlanlari b={b} bosken={<Yok />} />
+                        ) : (
+                          <Deger v={b.subjects.join(', ')} />
+                        )}
                       </td>
                       <td className={TD}>
                         <DurumRozeti b={b} />

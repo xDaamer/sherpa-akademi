@@ -16,6 +16,8 @@ import authRouter from "./server/routes/auth.js";
 import portalRouter from "./server/routes/portal.js";
 import teacherRouter from "./server/routes/teacher.js";
 import adminRouter from "./server/routes/admin.js";
+import metaWebhookRouter, { metaGovdeAyristirici } from "./server/routes/metaWebhook.js";
+import metaSheetsRouter from "./server/routes/metaSheets.js";
 import { serviceClient, describeConfiguration } from "./server/supabase.js";
 import { requireTrustedOrigin, isRateLimited, recordAttempt } from "./server/security.js";
 
@@ -56,6 +58,13 @@ const PORT = 3000;
 
 app.set("trust proxy", 1);
 app.disable("x-powered-by");
+/*
+ * /api/meta/*'nin kendi ayrıştırıcısı genelinden ÖNCE gelmeli: ham gövdeyi
+ * (webhook imzası için) o tutuyor ve sınırı daha geniş (Google Sheets
+ * aktarımı yüzlerce satırı tek istekte yolluyor). Genel express.json, gövdesi
+ * zaten ayrıştırılmış isteği atlıyor. Bkz. server/routes/metaWebhook.ts.
+ */
+app.use("/api/meta", metaGovdeAyristirici);
 app.use(express.json({ limit: "16kb" }));
 /* Oturum jetonları httpOnly çerezde taşınıyor (bkz. server/cookies.ts). */
 app.use(cookieParser());
@@ -183,6 +192,15 @@ app.use("/api/teacher", requireTrustedOrigin, teacherRouter);
  * Gerekçesi server/routes/admin.ts'in başında.
  */
 app.use("/api/admin", requireTrustedOrigin, adminRouter);
+
+/*
+ * Meta reklam formu başvuruları. requireTrustedOrigin BİLEREK YOK: çağıranlar
+ * tarayıcı değil (Google'ın Apps Script sunucusu / Meta'nın sunucusu), Origin
+ * göndermiyorlar. Koruma: /sheets'te gizli anahtar, /webhook'ta imza — bkz.
+ * modüllerin başı. Canlıda kullanılan /sheets.
+ */
+app.use("/api/meta", metaSheetsRouter);
+app.use("/api/meta", metaWebhookRouter);
 
 // API Routes
 app.get("/api/health", (_req, res) => {
@@ -394,11 +412,21 @@ app.post("/api/leads/step2", requireTrustedOrigin, limitLeadRequests, async (req
        * yeni bir satır açılıyor (fullName de bu yüzden taşınıyor).
        */
       if (!error) {
-        const { count } = await supabase
-          .from("leads")
-          .select("id", { count: "exact", head: true })
-          .eq("phone", payload.phone)
-          .eq("step", 2);
+        const tamamlananlar = () =>
+          supabase
+            .from("leads")
+            .select("id", { count: "exact", head: true })
+            .eq("phone", payload.phone)
+            .eq("step", 2);
+        /* Meta başvuruları da step = 2 yazılıyor (supabase-meta-leads.sql);
+           aynı numaranın Meta satırı sitedeki başvuruyu yutmasın diye yalnızca
+           site satırları sayılıyor. Filtreli sayım HERHANGİ bir hatayla
+           düşerse (ör. migration henüz çalıştırılmamış, `source` yok) eski
+           filtresiz sayıma dönülüyor: yoksa count null kalır ve her ikinci
+           adımda MÜKERRER satır açılırdı. Hata koduna bakılamıyor: bu bir HEAD
+           isteği, gövdesi yok ve supabase-js hatayı kodsuz döndürüyor. */
+        let { count, error: sayimHatasi } = await tamamlananlar().eq("source", "website");
+        if (sayimHatasi) ({ count } = await tamamlananlar());
 
         if ((count ?? 0) === 0) {
           const insertPayload: Record<string, unknown> = { ...payload };

@@ -260,6 +260,22 @@ async function calistir() {
     r.status === 200 && (r.body?.total ?? Infinity) <= basvuruToplam,
     `${r.status} toplam ${r.body?.total}`,
   );
+  /* Kaynak filtresi: iki kaynağın toplamı filtresiz toplamı vermeli. */
+  const siteR = await istek(yonetici.kavanoz, "/api/admin/basvurular?kaynak=website");
+  const metaR = await istek(yonetici.kavanoz, "/api/admin/basvurular?kaynak=meta");
+  kontrol(
+    "Kaynak filtresi: site + Meta = toplam",
+    siteR.status === 200 && metaR.status === 200 &&
+      siteR.body.total + metaR.body.total === basvuruToplam &&
+      (metaR.body.leads as any[]).every((l) => l.source === "meta"),
+    `${siteR.status}/${metaR.status} site ${siteR.body?.total} + meta ${metaR.body?.total} / ${basvuruToplam}`,
+  );
+  /* Meta kapıları anahtarsız/imzasız hiçbir şey yazamamalı (401; o yol
+     kurulmamışsa 503). Gövdeler boş: kapı açılsaydı bile yazacak bir şey yok. */
+  r = await istek(new Kavanoz(), "/api/meta/webhook", { method: "POST", body: { object: "page", entry: [] } });
+  kontrol("İmzasız Meta webhook -> 401/503", r.status === 401 || r.status === 503, `${r.status}`);
+  r = await istek(new Kavanoz(), "/api/meta/sheets", { method: "POST", body: { satirlar: [] } });
+  kontrol("Anahtarsız Sheets aktarımı -> 401/503", r.status === 401 || r.status === 503, `${r.status}`);
 
   /* Yönetici, diğer iki panelin uçlarına GİREMEZ: rol kapısı tek rol kabul
      ediyor ve bu bilinçli (bkz. CLAUDE.md > admin bölümü). Cevapta `code`
