@@ -1645,8 +1645,12 @@ router.delete("/odemeler/:id", async (req, res) => {
  * Okumanın da tek yolu servis rolü, yani bu uç yukarıdaki istisnanın
  * kapsamına doğal olarak giriyor — RLS'in eleyebileceği bir "sahip" yok.
  *
- * SALT OKUNUR. Düzenleme/silme ucu bilerek yok: başvuru, formu dolduran
- * kişinin beyanı ve yöneticinin onu değiştirmesi için bir sebep yok.
+ * BEYAN SALT OKUNUR. Düzenleme/silme ucu bilerek yok: başvuru, formu
+ * dolduran kişinin beyanı ve yöneticinin onu değiştirmesi için bir sebep yok.
+ * Yöneticinin yazabildiği tek şey kendi TAKİBİ — "arandı" işareti, not ve
+ * iki etiket (supabase-lead-followup.sql, PATCH /basvurular/:id). Onlar
+ * beyanın kolonlarına ve `updated_at`'e dokunmuyor. Aranma dilimi
+ * (`call_time_slot`) ise yazılmıyor: Meta cevabından veritabanında türüyor.
  *
  * `website` (bal küpü) ve `first_seen_lead_id` seçilmiyor: ilki dolu olan
  * satır zaten hiç yazılmıyor (server.ts reddediyor), ikincisinin panelde
@@ -1661,6 +1665,39 @@ router.delete("/odemeler/:id", async (req, res) => {
 const BASVURU_SAYFA_BOYUTU = 50;
 const BASVURU_SINAVLARI = new Set(["YKS", "LGS", "Diğer"]);
 const BASVURU_KAYNAKLARI = new Set(["website", "meta"]);
+/** Sunucudaki sınır veritabanındakiyle aynı (leads_admin_note_length). */
+const LEAD_NOT_MAKS = 2000;
+
+/*
+ * Kolon setleri. Liste, ilgili migration çalıştırılmadan deploy edilse de
+ * açılsın diye eksik şema hatasında bir alttaki setle tekrar deneniyor
+ * (sırası önemli: önce takip, sonra Meta düşüyor).
+ */
+const BASVURU_TEMEL_KOLONLAR =
+  "id, created_at, updated_at, full_name, phone, exam_type, step, student_full_name, parent_full_name, user_role, grade_class, selected_subjects, is_repeat_submission";
+const BASVURU_META_KOLONLAR = "source, meta_ad_name, meta_campaign_name, meta_platform, meta_fields";
+const BASVURU_TAKIP_KOLONLAR =
+  "contacted_at, admin_note, admin_note_updated_at, trial_taken, needs_followup, call_time_slot";
+/* private.aranma_dilimi'nin döndürdüğü değerler; "yok" = dilim belirtilmemiş
+   (sitedeki form ve aranma saati sorusu olmayan Meta formları). */
+const ARANMA_DILIMLERI = new Set(["08-17", "17-19", "19-sonrasi", "yok"]);
+const KOLON_DENEMELERI: { meta: boolean; takip: boolean; eksikSql: string | null }[] = [
+  { meta: true, takip: true, eksikSql: "supabase-lead-followup.sql" },
+  { meta: true, takip: false, eksikSql: "supabase-meta-leads.sql" },
+  { meta: false, takip: false, eksikSql: null },
+];
+
+/** Takip kolonlarının yanıttaki hâli; liste ve PATCH aynı biçimi döndürüyor. */
+function takipAlanlari(l: Record<string, any>) {
+  return {
+    contactedAt: l.contacted_at ?? null,
+    note: l.admin_note ?? null,
+    noteUpdatedAt: l.admin_note_updated_at ?? null,
+    trialTaken: Boolean(l.trial_taken),
+    needsFollowup: Boolean(l.needs_followup),
+    callTimeSlot: l.call_time_slot ?? null,
+  };
+}
 
 /**
  * Arama metni PostgREST'in `or=(...)` sözdiziminin İÇİNE yazılıyor. Virgül,
@@ -1678,7 +1715,7 @@ function aramaMetni(value: unknown): string | null {
   return temiz.length >= 2 ? temiz : null;
 }
 
-/** BAŞVURULARI LİSTELE — GET /api/admin/basvurular?sayfa=&q=&sinav=&adim=&kaynak= */
+/** BAŞVURULARI LİSTELE — GET /api/admin/basvurular?sayfa=&q=&sinav=&adim=&kaynak=&arandi=&etiket=&saat= */
 router.get("/basvurular", async (req, res) => {
   const { userId: yapanId } = res.locals as unknown as SessionLocals;
   const admin = serviceClient();
@@ -1692,15 +1729,25 @@ router.get("/basvurular", async (req, res) => {
       ? req.query.kaynak
       : null;
 
-  /* `metaKolonlari` false: supabase-meta-leads.sql henüz çalıştırılmamış
-     (aşağıdaki yedek deneme). */
-  const sorguKur = (metaKolonlari: boolean) => {
+  /* "1": arananlar, "0": aranmayanlar, başka her şey: hepsi. */
+  const arandi = req.query.arandi === "1" || req.query.arandi === "0" ? req.query.arandi : null;
+  const etiket = req.query.etiket === "takip" || req.query.etiket === "deneme" ? req.query.etiket : null;
+  const saat =
+    typeof req.query.saat === "string" && ARANMA_DILIMLERI.has(req.query.saat) ? req.query.saat : null;
+  /* Takip kolonları yoksa kimse işaretlenmemiş ve kimsenin dilimi yok: bu
+     filtrelerin cevabı boş liste. "Aranmayanlar" ve "dilimi yok" ise
+     filtresiz listeyle aynı (aşağıda). */
+  const takipSart = arandi === "1" || etiket !== null || (saat !== null && saat !== "yok");
+
+  const sorguKur = (kolonlar: { meta: boolean; takip: boolean }) => {
     let sorgu = admin
       .from("leads")
       .select(
-        metaKolonlari
-          ? "id, created_at, updated_at, full_name, phone, exam_type, step, student_full_name, parent_full_name, user_role, grade_class, selected_subjects, is_repeat_submission, source, meta_ad_name, meta_campaign_name, meta_platform, meta_fields"
-          : "id, created_at, updated_at, full_name, phone, exam_type, step, student_full_name, parent_full_name, user_role, grade_class, selected_subjects, is_repeat_submission",
+        [
+          BASVURU_TEMEL_KOLONLAR,
+          ...(kolonlar.meta ? [BASVURU_META_KOLONLAR] : []),
+          ...(kolonlar.takip ? [BASVURU_TAKIP_KOLONLAR] : []),
+        ].join(", "),
         { count: "exact" },
       )
       /* `id` eşitlik bozucu: adım 1 damgayı sunucudan alıyor ve aynı
@@ -1712,7 +1759,15 @@ router.get("/basvurular", async (req, res) => {
     if (typeof req.query.sinav === "string" && BASVURU_SINAVLARI.has(req.query.sinav)) {
       sorgu = sorgu.eq("exam_type", req.query.sinav);
     }
-    if (kaynak && metaKolonlari) sorgu = sorgu.eq("source", kaynak);
+    if (kaynak && kolonlar.meta) sorgu = sorgu.eq("source", kaynak);
+    if (kolonlar.takip) {
+      if (arandi === "1") sorgu = sorgu.not("contacted_at", "is", null);
+      if (arandi === "0") sorgu = sorgu.is("contacted_at", null);
+      if (etiket === "takip") sorgu = sorgu.eq("needs_followup", true);
+      if (etiket === "deneme") sorgu = sorgu.eq("trial_taken", true);
+      if (saat === "yok") sorgu = sorgu.is("call_time_slot", null);
+      else if (saat) sorgu = sorgu.eq("call_time_slot", saat);
+    }
     if (req.query.adim === "1" || req.query.adim === "2") {
       sorgu = sorgu.eq("step", Number(req.query.adim));
     }
@@ -1743,20 +1798,22 @@ router.get("/basvurular", async (req, res) => {
       error: { code?: string; message: string } | null;
       count: number | null;
     };
-    let { data, error, count } = (await sorguKur(true)) as unknown as Sonuc;
-    /* Meta kolonları yoksa (migration push'tan sonra çalıştırıldıysa) sekme
-       çökmesin: eski kolonlarla tekrar denenir; bütün satırlar zaten siteden
-       geldi, Meta görünümü boş döner. */
-    if (error && eksikSemaMi(error)) {
-      console.warn("[Admin] leads'te Meta kolonları yok — supabase-meta-leads.sql çalıştırılmalı.");
-      if (kaynak === "meta") {
-        data = [];
-        count = 0;
-        error = null;
-      } else {
-        ({ data, error, count } = (await sorguKur(false)) as unknown as Sonuc);
+    /* Kolonlar yoksa (migration push'tan sonra çalıştırıldıysa) sekme
+       çökmesin: bir alttaki kolon setiyle tekrar denenir. Meta kolonları
+       yoksa bütün satırlar zaten siteden geldi, Meta görünümü boş döner;
+       takip kolonları yoksa takip filtreleri boş döner (bkz. takipSart). */
+    let sonuc: Sonuc = { data: [], error: null, count: 0 };
+    let kolonlar = KOLON_DENEMELERI[0];
+    for (kolonlar of KOLON_DENEMELERI) {
+      if ((kaynak === "meta" && !kolonlar.meta) || (takipSart && !kolonlar.takip)) {
+        sonuc = { data: [], error: null, count: 0 };
+        break;
       }
+      sonuc = (await sorguKur(kolonlar)) as unknown as Sonuc;
+      if (!(sonuc.error && eksikSemaMi(sonuc.error) && kolonlar.eksikSql)) break;
+      console.warn(`[Admin] leads'te kolonlar eksik — ${kolonlar.eksikSql} çalıştırılmalı.`);
     }
+    const { data, error, count } = sonuc;
     if (error) {
       console.error("[Admin] başvurular okunamadı:", error.message);
       return res.status(502).json({ success: false, error: GENERIC_ERROR });
@@ -1779,6 +1836,9 @@ router.get("/basvurular", async (req, res) => {
          Meta görünümü boşken "bağlantı kurulmamış" ile "henüz başvuru yok"u
          ayırmak için. */
       metaConfigured: metaYapilandirildi(),
+      /* false: supabase-lead-followup.sql henüz çalıştırılmamış; panel
+         "arandı" kutularını ve notu devre dışı gösteriyor. */
+      followupAvailable: kolonlar.takip,
       leads: (data ?? []).map((l) => ({
         id: l.id,
         createdAt: l.created_at,
@@ -1793,6 +1853,7 @@ router.get("/basvurular", async (req, res) => {
         gradeClass: l.grade_class || null,
         subjects: Array.isArray(l.selected_subjects) ? l.selected_subjects : [],
         isRepeat: Boolean(l.is_repeat_submission),
+        ...takipAlanlari(l),
         source: l.source === "meta" ? "meta" : "website",
         meta:
           l.source === "meta"
@@ -1812,6 +1873,99 @@ router.get("/basvurular", async (req, res) => {
     });
   } catch (err: any) {
     console.error("[Admin] başvuru listesi istisnası:", err?.message || err);
+    return res.status(500).json({ success: false, error: GENERIC_ERROR });
+  }
+});
+
+/**
+ * BAŞVURU TAKİBİ — PATCH /api/admin/basvurular/:id
+ * Gövde: { contacted?, trialTaken?, needsFollowup?: boolean, note?: string }
+ * — en az biri. Boş not kaldırıyor. Yalnızca takip kolonlarına yazıyor; başvurunun beyanı ve
+ * `updated_at` değişmiyor.
+ *
+ * "Arandı" zamanı işaretlendiği an; işaret kaldırılıp tekrar konursa yeni an.
+ * İstemci kutuyu yalnızca durum değişince gönderiyor, not kaydı da işareti
+ * göndermiyor — yani notu düzeltmek arandı zamanını kaydırmıyor.
+ */
+router.patch("/basvurular/:id", async (req, res) => {
+  const { userId: yapanId } = res.locals as unknown as SessionLocals;
+  const { id } = req.params;
+  const admin = serviceClient();
+  if (!admin) return res.status(503).json({ success: false, error: NOT_CONFIGURED });
+  if (!UUID_BICIMI.test(id)) return res.status(404).json({ success: false, error: "Başvuru bulunamadı." });
+
+  const govde = req.body ?? {};
+  const degisiklik: Record<string, string | boolean | null> = {};
+  const simdi = new Date().toISOString();
+
+  if (govde.contacted !== undefined) {
+    if (typeof govde.contacted !== "boolean") {
+      return res.status(400).json({ success: false, error: "Arandı bilgisi geçersiz." });
+    }
+    degisiklik.contacted_at = govde.contacted ? simdi : null;
+    degisiklik.contacted_by = govde.contacted ? yapanId : null;
+  }
+  for (const [alan, kolon] of [
+    ["trialTaken", "trial_taken"],
+    ["needsFollowup", "needs_followup"],
+  ] as const) {
+    if (govde[alan] === undefined) continue;
+    if (typeof govde[alan] !== "boolean") {
+      return res.status(400).json({ success: false, error: "Etiket bilgisi geçersiz." });
+    }
+    degisiklik[kolon] = govde[alan];
+  }
+  let notUzunluk: number | null = null;
+  if (govde.note !== undefined) {
+    if (typeof govde.note !== "string") {
+      return res.status(400).json({ success: false, error: "Not gönderilmedi." });
+    }
+    const temiz = govde.note.trim();
+    if (temiz.length > LEAD_NOT_MAKS) {
+      return res.status(400).json({ success: false, error: `Not en fazla ${LEAD_NOT_MAKS} karakter olabilir.` });
+    }
+    notUzunluk = temiz.length;
+    degisiklik.admin_note = temiz || null;
+    degisiklik.admin_note_updated_at = simdi;
+    degisiklik.admin_note_updated_by = yapanId;
+  }
+  if (Object.keys(degisiklik).length === 0) {
+    return res.status(400).json({ success: false, error: "Değişiklik gönderilmedi." });
+  }
+
+  try {
+    /* Servis rolü RLS'i aşıyor: `.eq("id", ...)` düşerse BÜTÜN başvurular
+       güncellenir. maybeSingle de iki satır dönerse hata veriyor. */
+    const { data, error } = await admin
+      .from("leads")
+      .update(degisiklik)
+      .eq("id", id)
+      .select(`id, ${BASVURU_TAKIP_KOLONLAR}`)
+      .maybeSingle();
+    if (error) {
+      console.error("[Admin] başvuru takibi yazılamadı:", error.message);
+      return res.status(502).json({
+        success: false,
+        error: adimHatasi("Kaydedilemedi.", error, "supabase-lead-followup.sql"),
+      });
+    }
+    if (!data) return res.status(404).json({ success: false, error: "Başvuru bulunamadı." });
+
+    /* Notun METNİ yazılmıyor, yalnızca uzunluğu: içinde telefon, çocuğun
+       durumu gibi kişisel veri olabilir. */
+    auditLog(req, "ADMIN_LEAD_FOLLOWUP_WRITE", {
+      userId: yapanId,
+      detay: {
+        basvuruId: id,
+        ...(typeof govde.contacted === "boolean" ? { arandi: govde.contacted } : {}),
+        ...(typeof govde.trialTaken === "boolean" ? { deneme: govde.trialTaken } : {}),
+        ...(typeof govde.needsFollowup === "boolean" ? { takip: govde.needsFollowup } : {}),
+        ...(notUzunluk !== null ? { notUzunluk } : {}),
+      },
+    });
+    return res.json({ success: true, id, ...takipAlanlari(data) });
+  } catch (err: any) {
+    console.error("[Admin] başvuru takibi istisnası:", err?.message || err);
     return res.status(500).json({ success: false, error: GENERIC_ERROR });
   }
 });

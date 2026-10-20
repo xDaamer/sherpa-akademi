@@ -270,6 +270,59 @@ async function calistir() {
       (metaR.body.leads as any[]).every((l) => l.source === "meta"),
     `${siteR.status}/${metaR.status} site ${siteR.body?.total} + meta ${metaR.body?.total} / ${basvuruToplam}`,
   );
+  /* Takip filtreleri (supabase-lead-followup.sql): arananlar + aranmayanlar
+     ve dört saat seçeneği, ikisi de filtresiz toplamı vermeli. */
+  const arananR = await istek(yonetici.kavanoz, "/api/admin/basvurular?arandi=1");
+  const aranmayanR = await istek(yonetici.kavanoz, "/api/admin/basvurular?arandi=0");
+  kontrol(
+    "Arandı filtresi: arananlar + aranmayanlar = toplam",
+    arananR.status === 200 && aranmayanR.status === 200 &&
+      arananR.body.total + aranmayanR.body.total === basvuruToplam &&
+      (arananR.body.leads as any[]).every((l) => l.contactedAt) &&
+      (aranmayanR.body.leads as any[]).every((l) => !l.contactedAt),
+    `${arananR.status}/${aranmayanR.status} ${arananR.body?.total} + ${aranmayanR.body?.total} / ${basvuruToplam}`,
+  );
+  kontrol(
+    "Takip kolonları var (followupAvailable)",
+    arananR.status === 200 && arananR.body?.followupAvailable === true,
+    `${arananR.body?.followupAvailable} — false ise supabase-lead-followup.sql çalıştırılmamış`,
+  );
+  let saatToplam = 0;
+  let saatTutarli = true;
+  for (const dilim of ["08-17", "17-19", "19-sonrasi", "yok"]) {
+    const x = await istek(yonetici.kavanoz, `/api/admin/basvurular?saat=${dilim}`);
+    saatToplam += x.body?.total ?? 0;
+    saatTutarli &&= x.status === 200 &&
+      (x.body.leads as any[]).every((l) => l.callTimeSlot === (dilim === "yok" ? null : dilim));
+  }
+  kontrol("Saat filtresi: dört seçenek = toplam", saatTutarli && saatToplam === basvuruToplam,
+    `${saatToplam} / ${basvuruToplam}`);
+  for (const e of ["takip", "deneme"]) {
+    const x = await istek(yonetici.kavanoz, `/api/admin/basvurular?etiket=${e}`);
+    const alan = e === "takip" ? "needsFollowup" : "trialTaken";
+    kontrol(`Etiket filtresi (${e}) -> 200 ve yalnızca etiketliler`,
+      x.status === 200 && (x.body?.total ?? Infinity) <= basvuruToplam &&
+        (x.body.leads as any[]).every((l) => l[alan] === true),
+      `${x.status} toplam ${x.body?.total}`);
+  }
+  /* Takip yazması — GERÇEK bir başvuruya YAZMADAN: rastgele kimlik 404
+     dönmeli. Bu, isteğin veritabanına kadar gittiğini de gösteriyor (kolon
+     yoksa 404 değil 502 "SQL çalıştırılmalı" döner). */
+  r = await istek(yonetici.kavanoz, `/api/admin/basvurular/${crypto.randomUUID()}`, {
+    method: "PATCH",
+    body: { contacted: true, trialTaken: true, needsFollowup: true, note: "test" },
+  });
+  kontrol("Olmayan başvuruya takip -> 404", r.status === 404, `${r.status} ${r.body?.error ?? ""}`);
+  r = await istek(yonetici.kavanoz, `/api/admin/basvurular/${crypto.randomUUID()}`, {
+    method: "PATCH",
+    body: { contacted: "evet" },
+  });
+  kontrol("Geçersiz takip gövdesi -> 400", r.status === 400, `${r.status}`);
+  r = await istek(yonetici.kavanoz, `/api/admin/basvurular/${crypto.randomUUID()}`, {
+    method: "PATCH",
+    body: { note: "x".repeat(2001) },
+  });
+  kontrol("2000 karakterden uzun not -> 400", r.status === 400, `${r.status}`);
   /* Meta kapıları anahtarsız/imzasız hiçbir şey yazamamalı (401; o yol
      kurulmamışsa 503). Gövdeler boş: kapı açılsaydı bile yazacak bir şey yok. */
   r = await istek(new Kavanoz(), "/api/meta/webhook", { method: "POST", body: { object: "page", entry: [] } });
@@ -899,6 +952,11 @@ async function calistir() {
       body: { fullName: "Sizma", phone: `0558${DAMGA}`, password: "AAaa12345", userType: "admin" },
     });
     kontrol(`${ad} hesap AÇAMIYOR (403)`, y.status === 403, `${y.status}`);
+    const z = await istek(kav, `/api/admin/basvurular/${crypto.randomUUID()}`, {
+      method: "PATCH",
+      body: { contacted: true },
+    });
+    kontrol(`${ad} başvuru takibi YAZAMIYOR (403)`, z.status === 403, `${z.status}`);
   }
 
   const ogrenciOgretmenUcu = await istek(ogrenci.kavanoz, "/api/teacher/schedule");

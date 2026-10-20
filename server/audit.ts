@@ -82,6 +82,11 @@ export type AuditAction =
      bu giriyor çünkü veri hesabı olmayan kişilere ait (formu dolduranın
      telefonu, çocuğun adı) ve onlar bu panelin varlığından habersiz. */
   | "ADMIN_LEADS_VIEWED"
+  /* Başvurunun takibi: "arandı" işareti, "Deneme dersi alındı" / "Takip
+     gerekli" etiketleri ya da not. Detayda yalnızca değişen işaretlerin yeni
+     hâli ve notun UZUNLUĞU (0 = kaldırıldı); notun metni kişisel veri
+     içerebilir. */
+  | "ADMIN_LEAD_FOLLOWUP_WRITE"
   | "FORBIDDEN_ROLE";
 
 function clientIp(req: Request): string {
