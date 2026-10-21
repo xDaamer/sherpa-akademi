@@ -98,7 +98,7 @@ düzeninden çıkarıldı; hiçbiri resmi değil.
 | Sınav giriş belgesi | 3 Haziran'dan itibaren | Sınavdan yaklaşık 10 gün önce |
 | Sınav | 13 Haziran, Cumartesi | 6-20 Haziran arası |
 | Sonuçlar | 10 Temmuz | Temmuzun ilk yarısı |
-| Tercihler | 13-24 Temmuz | Temmuz ortası |
+| Tercihler | 13-27 Temmuz | Temmuz ortası |
 | Yerleştirme sonuçları | 5 Ağustos | Ağustos başı |
 
 Bu tablodaki en kritik satır başvuru. 2026'da resmi ve özel ortaokul

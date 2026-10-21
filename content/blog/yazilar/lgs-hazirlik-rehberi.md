@@ -65,7 +65,9 @@ zaman bırakmıyor.
 
 Puanlama üç doğrunun bir yanlışı götürmesi esasına dayanıyor. Yani rastgele
 işaretlemek beklenen puanı artırmıyor; ama iki şıkkı eleyebilen bir öğrenci
-için işaretlemek matematiksel olarak avantajlı hâle geliyor.
+için işaretlemek matematiksel olarak avantajlı hâle geliyor. Ham puandan
+100-500 ölçeğine kadar hesabın tamamı ve ders katsayıları
+[LGS puan hesaplama](/blog/lgs-puan-hesaplama) yazısında.
 
 > Sınav formatı, soru sayıları ve süreler MEB tarafından her yıl yayımlanan
 > kılavuzla belirleniyor ve değişebiliyor. Buradaki bilgiler MEB'in
@@ -90,7 +92,8 @@ olduğu için görece az çalışmayla yüksek net veren dersler. Matematik ve f
 tersine, en çok zaman isteyen ve net farkının en çok açıldığı yer.
 
 Pratik sonuç şu: az çalışmayla net getiren dersler ihmal edilmemeli, ama
-haftalık planın omurgası Türkçe, matematik ve fen olmalı.
+haftalık planın omurgası Türkçe, matematik ve fen olmalı. Her dersin ünite
+ünite konu listesi [LGS konuları](/blog/lgs-konulari) yazısında.
 
 ## LGS hazırlık süreci nasıl kurulur?
 
@@ -236,7 +239,9 @@ ve yanlış bir güven üretiyor. Sınavda süre yönetimi başlı başına bir 
 yalnızca süreli denemeyle gelişiyor.
 
 Son iki ayda deneme sıklığı haftada ikiye çıkarılabilir. Ama analiz yapılmadan
-çözülen iki deneme, analiz edilen bir denemeden daha az işe yarıyor.
+çözülen iki deneme, analiz edilen bir denemeden daha az işe yarıyor. Aylara
+göre deneme sıklığı ve örnek bir deneme takvimi
+[LGS deneme sınavı](/blog/lgs-deneme-sinavi) yazısında.
 
 ## Derslere göre nasıl çalışılmalı?
 
@@ -263,6 +268,8 @@ korunabilir.
 
 Sözcükte anlam ve deyim soruları için ayrı bir çalışma yapmaya gerek yok.
 Bunların en iyi kaynağı okumak — özellikle roman ve deneme türü metinler.
+Paragraf, sözel mantık ve dil bilgisi için haftalık bir plan
+[LGS Türkçe nasıl çalışılır](/blog/lgs-turkce-nasil-calisilir) yazısında.
 
 ### Matematikte net nasıl artar?
 
@@ -286,6 +293,9 @@ atlamamak ve sonucu soruyla karşılaştırmak gerekiyor.
 Üçüncüsü, çok adımlı sorular. Yeni nesil matematik sorusu genelde iki üç
 işlemi birleştiriyor. Bu tip sorularda işe yarayan yöntem, soruyu okurken
 verilen bilgileri kenara sıralamak ve ne istendiğini bir cümleyle yazmak.
+Konu sırası ve örnek haftalık planla birlikte ayrıntılar
+[LGS matematik nasıl çalışılır](/blog/lgs-matematik-nasil-calisilir)
+yazısında.
 
 ### Fen bilimlerinde hangi konular belirleyici?
 
@@ -307,6 +317,8 @@ hızlı sonuç veriyor.
 Deney düzeneği soruları fen testinin ayrı bir kategorisi. Burada sorulan şey
 bilgi değil, değişken kontrolü: hangi değişkenin sabit tutulduğu, hangisinin
 ölçüldüğü. Bu mantık bir kez oturduğunda konudan bağımsız olarak işe yarıyor.
+Yedi ünitenin her biri için yöntem
+[LGS fen nasıl çalışılır](/blog/lgs-fen-nasil-calisilir) yazısında.
 
 ### Az soru getiren dersler nasıl çalışılmalı?
 
@@ -318,7 +330,10 @@ için zaman oraya kayıyor. Ama bu dersler düşük çabayla yüksek net veriyor
 sıralamada fark yaratıyor.
 
 **İnkılap Tarihi** için kronoloji çıkarmak işe yarıyor. Olayları tarih sırasına
-dizen tek sayfalık bir şema, dağınık bilgiyi bir arada tutuyor.
+dizen tek sayfalık bir şema, dağınık bilgiyi bir arada tutuyor. Yedi ünite,
+soru tipleri ve örnek plan
+[LGS inkılap tarihi nasıl çalışılır](/blog/lgs-inkilap-tarihi-nasil-calisilir)
+yazısında.
 
 **Din Kültürü** konu alanı en dar ders. Düzenli tekrarla neredeyse tam net
 yapılabilecek bir alan ve çoğu öğrenci bunu geç fark ediyor.
@@ -335,11 +350,15 @@ düzenli olması.
 LGS sonrası yerleştirme iki farklı yoldan işliyor.
 
 **Merkezi sınav puanıyla yerleşilen okullar**: fen liseleri, sosyal bilimler
-liseleri ve proje okullarının bir kısmı. Burada belirleyici olan yüzdelik
-dilim — yani sınava girenler arasındaki sıranız.
+liseleri, proje okulları ve sınavla öğrenci alan Anadolu liseleri gibi okullar.
+Burada belirleyici olan yüzdelik dilim — yani sınava girenler arasındaki
+sıranız. Dilimin nasıl okunacağı
+[LGS yüzdelik dilim](/blog/lgs-yuzdelik-dilim) yazısında.
 
 **Yerel yerleştirmeyle yerleşilen okullar**: sınav puanı kullanılmıyor,
-adres ve ortaokul başarı puanı gibi ölçütler devreye giriyor.
+adres, ortaokul başarı puanı ve devamsızlık gibi ölçütler devreye giriyor.
+Kayıt alanı ve tercih kuralları [yerel yerleştirme](/blog/yerel-yerlestirme)
+yazısında.
 
 Yüzdelik dilim kavramı burada kritik. Aynı puan, sınavın zorluğuna göre farklı
 yıllarda farklı dilimlere karşılık gelebiliyor. Bu yüzden geçen yılın taban
@@ -348,7 +367,9 @@ veriyor.
 
 Tercih listesi kurarken en sık yapılan hata, listeyi yalnızca ulaşılması zor
 okullarla doldurmak. Liste, hedefin biraz üstünden başlayıp güvenli seçeneklere
-inen bir yelpaze olmalı.
+inen bir yelpaze olmalı. Tercih ekranları, 20 tercihin kuralları ve nakil
+dönemleri [LGS tercih nasıl yapılır](/blog/lgs-tercih-nasil-yapilir)
+yazısında.
 
 ## Sık yapılan hatalar
 
