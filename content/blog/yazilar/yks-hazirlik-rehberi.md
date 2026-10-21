@@ -60,7 +60,10 @@ hukuk ve iktisat eşit ağırlık, öğretmenlik ve hukuk dışı sosyal bölüm
 Bu tercihin erken yapılması önemli. Puan türü belli olmadan AYT'ye çalışmak,
 sonunda kullanılmayacak bir teste ay harcamak anlamına gelebiliyor. Kararsız
 kalan bir öğrenci için en güvenli yol, ilk aylarda TYT'ye yüklenip AYT kararını
-ikinci döneme bırakmaktır — çünkü TYT her puan türünde kullanılır.
+ikinci döneme bırakmaktır — çünkü TYT her puan türünde kullanılır. En sık
+karşılaşılan ikilem için
+[sayısal mı eşit ağırlık mı](/blog/sayisal-esit-agirlik) yazısı iki
+puan türünü test ağırlıklarıyla karşılaştırıyor.
 
 ### Sınav formatı ve puan sistemi nasıl işler?
 
@@ -78,11 +81,15 @@ sıfırdır.
 OBP, lise diploma notundan hesaplanır ve puana eklenir. Etkisi belirleyici
 değildir ama sıralamanın sıkışık olduğu aralıklarda birkaç bin kişilik fark
 yaratabilir. 12. sınıftaki ders notlarını tamamen bırakmak bu yüzden ucuza
-gelmez.
+gelmez. Formül ve tablolar [OBP hesaplama](/blog/obp-hesaplama) yazısında,
+puanın adım adım nasıl oluştuğu
+[YKS puan hesaplama](/blog/yks-puan-hesaplama) yazısında.
 
-**TYT barajı kritik bir eşiktir.** Barajın altında kalan bir aday, AYT'de ne
-yaparsa yapsın tercih yapamaz. Bu yüzden hazırlığın ilk yarısı TYT ağırlıklı
-kurulur.
+**TYT puanı her şeyin ön şartıdır.** 2026 kılavuzunda puan barajı yok, ama
+TYT puanı hesaplanmayan adayın AYT puanları da hesaplanmıyor ve tercih
+hakkı doğmuyor. Bazı bölümlerde ise başarı sırası şartı aranıyor; sınırlar
+[YKS baraj puanı](/blog/yks-baraj-puani) yazısında. Hazırlığın ilk yarısının
+TYT ağırlıklı kurulmasının sebebi de bu: TYT, her puan türünün yüzde 40'ı.
 
 Yanlışın doğruyu götürmesinin pratik bir sonucu var: emin olunmayan soruda
 eleme yapılabiliyorsa işaretlemek, hiç dokunmamaktan iyidir. İki seçeneği
@@ -276,7 +283,8 @@ Soru bankası seçerken üç şeye bakın:
 Konu anlatımı için kitap yerine video tercih edilebilir; ikisi arasında verim
 farkı yoktur, önemli olan arkasından soru çözülmesidir. Çıkmış soruların ise
 alternatifi yok: sınavın dilini en doğru gösteren kaynak onlardır ve her konu
-bittiğinde o konunun çıkmışları çözülmelidir.
+bittiğinde o konunun çıkmışları çözülmelidir. Seviyeni ölçüp kaynağı ona göre
+seçmenin adımları [YKS kaynak seçimi](/blog/yks-kaynak-secimi) yazısında.
 
 ## Deneme sınavı stratejisi nasıl olmalı?
 
@@ -323,6 +331,12 @@ Burada işe yarayan şey, her gün aynı saatte başlamak — saat değişkenle�
 Mezun öğrencinin ikinci riski yalnızlıktır. Haftada bir gün evden çıkmayı,
 kütüphanede çalışmayı veya bir arkadaşla ortak deneme çözmeyi programa yazmak,
 uzun dönemde süreklilik açısından ders çalışmak kadar belirleyici oluyor.
+Geçen yılın sonucunu okumaktan örnek bir güne kadar ayrıntılar
+[mezun YKS hazırlık](/blog/mezun-yks-hazirlik) yazısında.
+
+Hazırlığa daha erken başlayan, henüz 11. sınıfta olan öğrenciler için ise
+tempo ve öncelikler farklı; bunları
+[11. sınıfta YKS hazırlık](/blog/11-sinif-yks-hazirlik) yazısında ele aldık.
 
 ## Net neden bir süre sonra artmıyor?
 
@@ -352,7 +366,9 @@ dağılımını değiştirmek. Somut olarak: soruların çoğunluğunu son iki h
 
 Bir başka işe yarayan ölçüm, netin toplamına değil testler bazına bakmak.
 Toplam net üç haftadır sabitken Türkçe artıp matematik düşüyor olabilir. Toplam
-rakam bunu gizler; test bazlı takip gösterir.
+rakam bunu gizler; test bazlı takip gösterir. Hangi testin netinin puana en
+çok yansıdığı ve test test yöntemler
+[TYT net artırma](/blog/tyt-net-artirma) yazısında.
 
 Bu noktada dışarıdan bir gözün faydası artıyor. Kendi kalıbını görmek zor,
 çünkü kalıbın içinden bakılıyor. Bir öğretmenin üç haftalık deneme sonuçlarına
@@ -451,6 +467,10 @@ yıl içinde vermek gerekiyor.
 Puan türü kararı en başta veriliyor ve hangi AYT testlerine çalışılacağını
 belirliyor. Bölüm listesi ise mart-nisan gibi kabaca oluşturulmalı: hedefin
 gerektirdiği net aralığını bilmek, son üç ayın planını doğrudan etkiliyor.
+
+Sınav ve tercih takviminin ne zaman açıklanacağı
+[YKS ne zaman](/blog/yks-ne-zaman) yazısında; 24 tercihin nasıl sıralanacağı
+ise [YKS tercih nasıl yapılır](/blog/yks-tercih-nasil-yapilir) yazısında.
 
 ## Derslere göre yol haritası
 
