@@ -505,6 +505,9 @@ Müfredat değişikliğinin sınavlara ne zaman yansıyacağı sık sorulan bir 
 [maarif modeli sınav değişikliği](/blog/maarif-modeli-sinav-degisikligi) yazısı
 hangi sınıfın hangi programda olduğunu ve 2028'de neyin değiştiğini anlatıyor.
 
+Sınav tarihi ve başvuru takvimi hakkında açıklanan ve tahmin edilen her şey
+[LGS ne zaman](/blog/lgs-ne-zaman) yazısında toplandı.
+
 Yılın ilk dönemine özel plan
 [8. sınıf ilk dönem planı](/blog/8-sinif-ilk-donem-plani) yazısında, sınavın
 sayısal fotoğrafı [LGS istatistikleri](/blog/lgs-istatistikleri) yazısında ve

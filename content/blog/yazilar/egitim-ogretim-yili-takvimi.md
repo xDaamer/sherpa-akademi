@@ -8,7 +8,8 @@ author: sherpa-akademi-egitim-ekibi
 tags: [sinav-takvimi, lgs, yks, ara-tatil]
 status: published
 publishedAt: 2026-09-15
-lastReviewedAt: 2026-09-15
+contentUpdatedAt: 2026-10-21
+lastReviewedAt: 2026-10-21
 cover:
 coverAlt:
 seoTitle: "2026-2027 Eğitim Öğretim Yılı Takvimi"
@@ -94,7 +95,8 @@ Hayır. Bu yazının yayımlandığı tarih itibarıyla ne MEB 2027 LGS tarihini
 ÖSYM 2027 YKS takvimini resmen açıkladı.
 
 Geçmiş yılların düzeni bir fikir veriyor. LGS son iki yıldır haziranın
-ortasında yapıldı: 2025'te 15 Haziran, 2026'da 14 Haziran. YKS ise haziranın
+ortasında yapıldı: 2025'te 15 Haziran, 2026'da 13 Haziran (kılavuzda 14 Haziran
+olarak açıklanmış, sonradan bir gün öne alınmıştı). YKS ise haziranın
 üçüncü haftasında, cumartesi ve pazar günleri iki oturum hâlinde uygulanıyor.
 
 :::uyari
@@ -105,7 +107,9 @@ değil, "haziran ortası" aralığını esas almak daha güvenli.
 
 Başvuru dönemleri de benzer biçimde öngörülebilir. YKS başvuruları genellikle
 şubat ayında, LGS başvuruları ise mart sonu ile nisan arasında alınıyor.
-Başvuru tarihleri açıklandığında bu yazı güncellenecek.
+Başvuru tarihleri açıklandığında bu yazı güncellenecek. LGS için son üç yılın
+resmi takvimi ve 2027 tahminleri
+[LGS ne zaman](/blog/lgs-ne-zaman) yazısında ayrıntılı olarak yer alıyor.
 
 ## Hangi tarihler şimdiden işaretlenmeli?
 
